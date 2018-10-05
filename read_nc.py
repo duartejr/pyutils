@@ -35,7 +35,7 @@ def read_nc(file, shape, var_name='pre', var_time='month',
 
     pos_lon = np.where(lon>180)[0]
     lon[pos_lon] = lon[pos_lon]-360
-    
+
     if time_units:
         init_date = time_units.split(' ')
         try:
