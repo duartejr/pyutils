@@ -140,9 +140,7 @@ def plot_maps_shp(shapes, fill_value=0, bbox=[-75, -30, -34, 6],
                    parallels=np.arange(-90., 90., 2),
                    meridians = np.arange(180., 360., 2), title='',
                    figname=False):
-    axes = [0.07, 0.06, 0.8, 0.83]
-    fig = plt.figure(figsize=(6, 5.7))
-    ax = fig.add_axes(axes)
+   
     map = Basemap(llcrnrlat=bbox[2],
                   llcrnrlon=bbox[0],
                   urcrnrlat=bbox[3],
@@ -150,6 +148,11 @@ def plot_maps_shp(shapes, fill_value=0, bbox=[-75, -30, -34, 6],
     
     if type(colors) != str:
         cmap = mycmap(colors, nbins)
+        
+    axes = [0.07, 0.06, 0.77, 0.84]
+    fig = plt.figure(figsize=(6, 5.7))
+    ax = fig.add_axes(axes)
+    bounds = np.linspace(vmin, vmax, nbins+1)
     
     colors =  matplotlib.cm.get_cmap(cmap)
     
@@ -157,23 +160,28 @@ def plot_maps_shp(shapes, fill_value=0, bbox=[-75, -30, -34, 6],
         map.readshapefile(shape, 'myshape', drawbounds=True,
                               linewidth=.6, zorder=2, color='k')
         patches = []
-
+        
         for shape in map.myshape:
             patches.append(Polygon(np.array(shape), True))
-
+            
+        for d, v in enumerate(bounds[1:]):
+            if fill_value[c] <= v:
+                n = d
+                break
+        
         ax.add_collection(PatchCollection(patches,
-                                          facecolor=colors(fill_value[c]),
+                                          facecolor=colors(n),
                                           edgecolor='k', linewidth=.25))
     plt.title(title, fontsize=13)
-    axes = [0.89, 0.17, 0.03, 0.61]
+    
     map.drawparallels(parallels, labels=[1, 0, 0, 0], fontsize=10,
                   linewidth=.3)
     map.drawmeridians(meridians, labels=[0, 0, 0, 1], fontsize=10,
                       linewidth=.3)
-    print(np.linspace(vmin, vmax, nbins))
+    axes = [0.85, 0.17, 0.03, 0.61]
     cbar(cmap, axes, np.linspace(vmin, vmax, nbins+1), label, fig, 'vertical',
          ticks_label=cbar_label)
-    
+   
     if figname:
         plt.savefig(figname)
         plt.close()
