@@ -47,7 +47,7 @@ def plot_maps(data, lat, lon, dir_shape, name_shape, clip=True, vmin=0,
               cbar_label='My legend', cbar_extend='both', lbsize=10, lbpad=3,
               fontsize=11, aux_shapes=[], parallels=np.arange(-90., 90., 2),
               meridians = np.arange(180., 360., 2), title='', figname='',
-              show=False):
+              show=False, axes=False):
     '''
     data(array): Matriz com dados a serem plotados. Shape [lat, lon]
     lat(array): Vetor com coordenadas de latitude
