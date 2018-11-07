@@ -10,7 +10,7 @@ import matplotlib
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 from pyutils.custom_colorbar import colorbar as cbar
-
+# exit()
 
 def bbox(shape):
 	src_ds = ogr.Open(shape)
@@ -140,7 +140,7 @@ def plot_maps_shp(shapes, fill_value=0, bbox=[-75, -30, -34, 6],
                    parallels=np.arange(-90., 90., 2),
                    meridians = np.arange(180., 360., 2), title='',
                    figname=False):
-   
+
     map = Basemap(llcrnrlat=bbox[2],
                   llcrnrlon=bbox[0],
                   urcrnrlat=bbox[3],
@@ -157,14 +157,16 @@ def plot_maps_shp(shapes, fill_value=0, bbox=[-75, -30, -34, 6],
     colors =  matplotlib.cm.get_cmap(cmap)
     
     for c, shape in enumerate(shapes):
+        print(shape)
         map.readshapefile(shape, 'myshape', drawbounds=True,
                               linewidth=.6, zorder=2, color='k')
         patches = []
         
         for shape in map.myshape:
             patches.append(Polygon(np.array(shape), True))
-            
+
         for d, v in enumerate(bounds[1:]):
+            
             if fill_value[c] <= v:
                 n = d
                 break
@@ -179,8 +181,10 @@ def plot_maps_shp(shapes, fill_value=0, bbox=[-75, -30, -34, 6],
     map.drawmeridians(meridians, labels=[0, 0, 0, 1], fontsize=10,
                       linewidth=.3)
     axes = [0.85, 0.17, 0.03, 0.61]
-    cbar(cmap, axes, np.linspace(vmin, vmax, nbins+1), label, fig, 'vertical',
+    
+    cb = cbar(cmap, axes, np.linspace(vmin, vmax, nbins+1), label, fig, 'vertical',
          ticks_label=cbar_label)
+    # print(cbar_label)
    
     if figname:
         plt.savefig(figname)

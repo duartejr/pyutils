@@ -37,9 +37,9 @@ def colorbar(cmap, axes, bounds, label, fig, align, extend='neither',
     # bounds = range(-100, 100, 10)
     step = abs(bounds[1] - bounds[0])
     boundaries = [bounds[0]-step] + bounds + [bounds[-1]+step]
-    print(bounds,'bounds')
-    ticks = np.arange(bounds[-1]+step/2, bounds[-1]+len(boundaries))
-    print(ticks)
+    print(boundaries)
+    ticks = np.arange(bounds[0], bounds[-1]+len(boundaries), step)
+    
     norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
     cb3 = mpl.colorbar.ColorbarBase(ax, cmap=cmap,
                                     boundaries=boundaries,
@@ -48,16 +48,22 @@ def colorbar(cmap, axes, bounds, label, fig, align, extend='neither',
                                     # the same as the length of the
                                     # interior colors:
                                     extendfrac='auto',
-                                    ticks=boundaries,
+                                    ticks=ticks,
                                     spacing='uniform',
                                     orientation=align)
-    if ticks_label:
+
+    if len(ticks_label):
+        
         if align == 'vertical':
-            cb3.ax.set_yticklabels(bounds)
+            
+            cb3.ax.set_yticklabels(ticks_label)
+
         else:
-            cb3.ax.set_xticklabels(bounds)
+
+            cb3.ax.set_xticklabels(ticks_label)
     else:
+
         cb3.ax.set_xticklabels(bounds)
-    
+
     if label:
         cb3.set_label(label)
