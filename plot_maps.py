@@ -137,6 +137,7 @@ def plot_maps_shp(shapes, fill_value=0, bbox=[-75, -30, -34, 6],
                   vmin=0, vmax=9, ticks_label=False, cbar_extend=None,
                   cbar_label=False,
                   label=False,
+                  align_ticks='bottom',
                    parallels=np.arange(-90., 90., 2),
                    meridians = np.arange(180., 360., 2), title='',
                    figname=False):
@@ -155,9 +156,9 @@ def plot_maps_shp(shapes, fill_value=0, bbox=[-75, -30, -34, 6],
     bounds = np.linspace(vmin, vmax, nbins+1)
     
     colors =  matplotlib.cm.get_cmap(cmap)
+    z = 0
     
     for c, shape in enumerate(shapes):
-        print(shape)
         map.readshapefile(shape, 'myshape', drawbounds=True,
                               linewidth=.6, zorder=2, color='k')
         patches = []
@@ -169,11 +170,16 @@ def plot_maps_shp(shapes, fill_value=0, bbox=[-75, -30, -34, 6],
             
             if fill_value[c] <= v:
                 n = d
+                z += 1
                 break
+        
+        if not(z):
+            n = d
         
         ax.add_collection(PatchCollection(patches,
                                           facecolor=colors(n),
                                           edgecolor='k', linewidth=.25))
+        z = 0
     plt.title(title, fontsize=13)
     
     map.drawparallels(parallels, labels=[1, 0, 0, 0], fontsize=10,
@@ -183,7 +189,7 @@ def plot_maps_shp(shapes, fill_value=0, bbox=[-75, -30, -34, 6],
     axes = [0.85, 0.17, 0.03, 0.61]
     
     cb = cbar(cmap, axes, np.linspace(vmin, vmax, nbins+1), label, fig, 'vertical',
-         ticks_label=cbar_label)
+         ticks_label=cbar_label, align_ticks=align_ticks)
     # print(cbar_label)
    
     if figname:
