@@ -154,7 +154,6 @@ def plot_maps_shp(shapes, fill_value=0, bbox=[-75, -30, -34, 6],
     fig = plt.figure(figsize=(6, 5.7))
     ax = fig.add_axes(axes)
     bounds = np.linspace(vmin, vmax, nbins+1)
-    
     colors =  matplotlib.cm.get_cmap(cmap)
     z = 0
     
@@ -188,6 +187,7 @@ def plot_maps_shp(shapes, fill_value=0, bbox=[-75, -30, -34, 6],
                       linewidth=.3)
     axes = [0.85, 0.17, 0.03, 0.61]
     
+ 
     cb = cbar(cmap, axes, np.linspace(vmin, vmax, nbins+1), label, fig, 'vertical',
          ticks_label=cbar_label, align_ticks=align_ticks)
     # print(cbar_label)
