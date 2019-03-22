@@ -9,7 +9,8 @@ from matplotlib.colors import LinearSegmentedColormap
 import matplotlib
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
-from pyutils.custom_colorbar import colorbar as cbar
+from custom_colorbar import colorbar as cbar
+
 # exit()
 
 def bbox(shape):
@@ -48,6 +49,7 @@ def plot_maps(data, lat, lon, dir_shape, name_shape, clip=True, vmin=0,
               fontsize=11, aux_shapes=[], parallels=np.arange(-90., 90., 2),
               meridians = np.arange(180., 360., 2), title='', figname='',
               show=False, axes=False):
+    print(figname)
     '''
     data(array): Matriz com dados a serem plotados. Shape [lat, lon]
     lat(array): Vetor com coordenadas de latitude
@@ -62,7 +64,7 @@ def plot_maps(data, lat, lon, dir_shape, name_shape, clip=True, vmin=0,
     nbin(int): Número de divisisões para colormap personalizado.
     cbar_loc(str): Localizaçao da colorbar 'vertical' ou 'horizontal'
     cbar_label(str): Legenda para a colorbar
-    cbar_extend(str): Extende limites da colorbar: 'both', 'max', 'min' ou None
+    cbar_extend(str): Extende limites da colorbar: 'both', 'max', 'min' ou 'neither'
     lbsize(int): Tamanho da colorbar
     fontsize(int): Tamanho da fonte da colorbar.
     aux_shapes(list): Lista de shapes para personalizar área de desenho.
@@ -103,6 +105,7 @@ def plot_maps(data, lat, lon, dir_shape, name_shape, clip=True, vmin=0,
                   ticks= ticks,
                   label=cbar_label, extend=cbar_extend)
     cb.ax.tick_params(labelsize=lbsize)
+    
     if cbar_loc == 'vertical':
         cb.ax.set_yticklabels(ticks_label)
     else:
@@ -128,7 +131,7 @@ def plot_maps(data, lat, lon, dir_shape, name_shape, clip=True, vmin=0,
     
     if show:
         plt.show()
-        plt.close()
+        
 
 def plot_maps_shp(shapes, fill_value=0, bbox=[-75, -30, -34, 6],
                   colors = [(1,0,0), (1,1,1), (0,0,1)],
