@@ -39,16 +39,16 @@ def colorbar(cmap, axes, bounds, label, fig, align, extend='neither',
     boundaries = np.array([bounds[0]-step] + list(bounds) + [bounds[-1]+step])
     ticks = np.arange(bounds[0], bounds[-1]+len(boundaries), step)
     ticks = np.array(boundaries)
-    print(boundaries, 'boundaries')
-    print(ticks)
-    print( np.array([bounds[0]-step] + list(bounds) + [bounds[-1]+step]))
+#    print(boundaries, 'boundaries')
+#    print(ticks)
+#    print( np.array([bounds[0]-step] + list(bounds) + [bounds[-1]+step]))
     
 #    if align_ticks == 'center':
 #        boundaries += step/2
     norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
     cb3 = mpl.colorbar.ColorbarBase(ax, cmap=cmap,
                                     boundaries=boundaries,
-                                    extend=extend,
+                                    extend='both',
                                     # Make the length of each extension
                                     # the same as the length of the
                                     # interior colors:

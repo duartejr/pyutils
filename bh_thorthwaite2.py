@@ -38,7 +38,7 @@ def bhthorthwaite(pr, etp, cad=100):
                 ARM.append(cad*np.exp(Nac[i]/cad))
                 ALT.append(ARM[i]-ARM[i-1])
                 ETR.append(pr[i]+np.abs(ALT[i]))
-                DEF.append(etp[i]-ETR[i])
+                DEF.append(abs(etp[i]-ETR[i]-ALT[i]))
                 
                 if ARM[i] <= cad:
                     EXC.append(0)
@@ -61,7 +61,7 @@ def bhthorthwaite(pr, etp, cad=100):
                 ALT.append(ARM[i]-ARM[i-1])
                 ETR.append(etp[i])
             
-            DEF.append(etp[i]-ETR[i])
+            DEF.append(abs(etp[i]-ETR[i]-ALT[i]))
             
             if ARM[i] < cad:
                 EXC.append(0)
