@@ -6,6 +6,7 @@ import cartopy, cartopy.crs as ccrs # Plot maps
 import cartopy.io.shapereader as shpreader # Import shapefiles
 import numpy as np # Scientific computing with Python
 import geopandas as gpd
+from scipy import ndimage
 
 def get_extent(shp):
     gpd_shp = gpd.read_file(shp)['geometry']
@@ -42,6 +43,7 @@ def imshow(data, shape=False, figsize=(10,10), extent=False, vmin=0, vmax=100,
             fontsize=10, loc='center', filename=False, show=True, gridlat=5,
             gridlon=5, edgecolorshp='black', facecolorshp='none',
             linewidthshp=.5, drawcoast=False, clip=False, ticks=[], nbin=10):
+    
     # Choose the plot size (width x height, in inches)
     plt.figure(figsize=figsize)
     # Use the Cilindrical Equidistant projection in cartopy
@@ -79,8 +81,12 @@ def imshow(data, shape=False, figsize=(10,10), extent=False, vmin=0, vmax=100,
     gl.top_labels = False
     gl.right_labels = False
     # Plot the image
-    img = ax.imshow(data, origin='lower', extent=img_extent, vmin=vmin,
-                    vmax=vmax, cmap=cmap, clip_path=clip)
+    if clip:
+        img = ax.imshow(data, origin='lower', extent=img_extent, vmin=vmin,
+                        vmax=vmax, cmap=cmap, clip_path=clip)
+    else:
+        img = ax.imshow(data, origin='lower', extent=img_extent, vmin=vmin,
+                        vmax=vmax, cmap=cmap)
     # Add a colorbar
     plt.colorbar(img, label=label, extend=extend, orientation=orientation,
                  pad=pad, fraction=fraction, ticks=ticks)
