@@ -23,8 +23,6 @@ def spi(data, scale, nseas):
     return:      - O valor do spi e os parametros da função gama
     '''
 
-    erase_yr = np.ceil((scale/12.))
-
     # Data setting to scaled dataset
     # A1 = np.zeros((0, scale))
     A1 = []

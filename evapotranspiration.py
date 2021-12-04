@@ -1,7 +1,7 @@
 import numpy as np
 from numpy import arccos, tan, sin, pi, cos, log, exp, sqrt, arctan
 
-def hargreaves(t_med, t_max, t_min, y, daily=False):
+def hargreaves(t_med, t_max, t_min, y, months, etp_daily=False, data_freq='daily'):
     """Cálculo da ETP segundo Hargreaves
     Dados:  t_med: temperátura média
             t_max: temperatura máxima
@@ -44,7 +44,7 @@ def hargreaves(t_med, t_max, t_min, y, daily=False):
     HG2 = []
     HG1 = []
     
-    if daily:
+    if etp_daily:
         while len(S_0) < len(t_med):
             S_0 = np.concatenate((S_0,S_0))
         S_0 = S_0[:len(t_med)]
@@ -55,18 +55,28 @@ def hargreaves(t_med, t_max, t_min, y, daily=False):
             HG1[posnegs[:]] = 0.0
         return np.array(HG1)
     else:
-        for i in range(n_anos):
-            ini = 12*i
-            fim = 12*i+12
-            aux = 0.0023*(t_med[ini:fim] + 17.8)*\
-                  (np.abs(t_max[ini:fim] - t_min[ini:fim]))**.5*S_0m
-           
-            aux = np.array(aux)
-            if len(np.where(aux<0)[0]):
-                aux[np.where(aux<0)[0]] = 0
-            HG2.append(n_dias*aux)
+        if data_freq=='daily':
+            for i in range(n_anos):
+                ini = 12*i
+                fim = 12*i+12
+                aux = 0.0023*(t_med[ini:fim] + 17.8)*\
+                      (np.abs(t_max[ini:fim] - t_min[ini:fim]))**.5*S_0m
+               
+                aux = np.array(aux)
+                if len(np.where(aux<0)[0]):
+                    aux[np.where(aux<0)[0]] = 0
+                HG2.append(n_dias*aux)
+            return np.array(HG2).reshape(n_anos*12)
+        else:
+            for i in range(len(t_med)):
+                month = months[i]-1
+                aux = 0.0023*(t_med[i] + 17.8 * np.abs(t_max[i] - t_min[i]))**.5*S_0m[month]
+                if aux < 0:
+                    aux = 0
+                HG2.append(n_dias[month]*aux)
+            return np.array(HG2)
 
-        return np.array(HG2).reshape(n_anos*12)
+        
 
 def thornthwaite(Ti, n):
     n_d = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] * int(len(Ti)/12)
