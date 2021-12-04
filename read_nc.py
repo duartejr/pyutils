@@ -32,7 +32,11 @@ def __read_var(file, var_name, plat, plon, ptime):
     if len(Dataset(file).variables[var_name].shape) == 3:
         var = Dataset(file).variables[var_name][ptime, plat, plon]
     else:
+<<<<<<< HEAD
         var = Dataset(file).variables[var_name][plat, plon]
+=======
+        var = Dataset(file).variables[var_name][ptime, :, :, plat, plon]
+>>>>>>> 7734ed66fde818b099c1a36c253a2beb8c6c9372
 
     return var
 
@@ -128,7 +132,11 @@ def read_nc(file, shape=None, var_name='pre', freq='month', start_date=0,
     elif len(dates) > 1:
         pos_time_in = range(0, len(dates))
     else:
+<<<<<<< HEAD
         pos_time_in = [0]
+=======
+        pos_time_in = range(0, len(dates))
+>>>>>>> 7734ed66fde818b099c1a36c253a2beb8c6c9372
 
     if shape:
         pos_lon_in, pos_lat_in = __in_poly(shape, lat, lon, buffer)
