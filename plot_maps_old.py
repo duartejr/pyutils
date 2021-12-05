@@ -546,4 +546,3 @@ def quiver(u, v, lat, lon, m, shp, clip=None, vmin=0, vmax=100, cmap='seismic_r'
     
     if show:
         plt.show()
-            
