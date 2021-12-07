@@ -14,7 +14,8 @@ import geopandas as gpd
 
 
 def __in_poly(shp, lat, lon, buffer=0):
-    gpd_shp = gpd.read_file(shp)['geometry']
+    gpd_shp = gpd.read_file(shp)['geometry'].set_crs("EPSG:4326", allow_override=True)
+    #gpd_shp = gpd_shp.to_crs("EPSG:4326")
     gpd_shp = gpd_shp.buffer(buffer)
     bounds = gpd_shp.bounds
     pos_lon = np.where((lon >= bounds. minx[0]) & (lon <= bounds. maxx[0]))[0]
