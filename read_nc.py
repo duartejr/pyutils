@@ -51,6 +51,8 @@ def __dates(time_units, times):
         dates = np.array([init_date + relativedelta(months=x) for x in times])
     if time_units.split(' ')[0][:3].lower() == 'day':
         dates = np.array([init_date + relativedelta(days=x) for x in times])
+    if time_units.split(' ')[0] == 'hours':
+        dates = np.array([init_date + relativedelta(hours=x) for x in times])
     
     return dates
 
