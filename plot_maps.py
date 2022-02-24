@@ -32,15 +32,27 @@ def clip_area(shp, ax):
     clip = PathPatch(clip, transform=ax.transData)
     return clip
 
-def mycmap(colors):
-    cmap = matplotlib.colors.ListedColormap(colors[1:-1])
-    cmap.set_over(colors[0])
-    cmap.set_under(colors[-1])
+def mycmap(colors, extend):
+
+    color_under = colors[0]
+    color_over = colors[-1]
+
+    if extend == 'max':
+        colors = colors[:-1]
+    elif extend == 'min':
+        colors = colors[1:]
+    elif extend == 'both':
+        colors = colors[1:-1]
+
+    cmap = matplotlib.colors.ListedColormap(colors, N=len(colors))
+    cmap.set_over(color_over)
+    cmap.set_under(color_under)
+
     return cmap
 
 
-def imshow(data, shape='', figsize=(10,10), extent=[], 
-            vmin=np.nan, vmax=np.nan,
+def imshow(data, lon, lat, shape='', figsize=(10,10), extent=[], 
+            vmin=np.nan, vmax=np.nan, decorators=[],
             cmap='jet', label='', extend='both', orientation='vertical',
             pad=0.05, fraction=0.05, title='', fontweight='bold',
             fontsize=10, loc='center', filename=False, show=True, gridlat=5,
@@ -82,19 +94,20 @@ def imshow(data, shape='', figsize=(10,10), extent=[],
     plt.figure(figsize=figsize)
     # Use the Cilindrical Equidistant projection in cartopy
     ax = plt.axes(projection=ccrs.PlateCarree())
+    xs, ys = np.meshgrid(lon, lat)
     
-    if extent:
-        # Define the image extent [min. lon, max. lon, min. lat, max. lat]
-        img_extent = [extent[0], extent[2], extent[1], extent[3]]
-    else:
+    if not extent:
+        # Define the image extent [min.lon, max.lon, min.lat, max.lat]
         extent = get_extent(shape)
-        img_extent = [extent[0], extent[2], extent[1], extent[3]]
+        extent = [extent[0], extent[2], extent[1], extent[3]]
+    
+    ax.set_extent(extent, crs=ccrs.PlateCarree())
     
     if clip:
         clip = clip_area(shape, ax)
     
     if type(cmap) != str:
-        cmap = mycmap(cmap)
+        cmap = mycmap(cmap, extend)
 
     if np.isnan(vmin):
         vmin = data.min()
@@ -103,10 +116,18 @@ def imshow(data, shape='', figsize=(10,10), extent=[],
     
     if not np.array(ticks).any():
         ticks = np.linspace(vmin, vmax, nbin)
+        print(ticks)
     
-    shapefile = list(shpreader.Reader(shape).geometries())
-    ax.add_geometries(shapefile, ccrs.PlateCarree(), edgecolor=edgecolorshp,
-                      facecolor=facecolorshp, linewidth=linewidthshp)
+    if shape:
+        shapefile = list(shpreader.Reader(shape).geometries())
+        ax.add_geometries(shapefile, ccrs.PlateCarree(), edgecolor=edgecolorshp,
+                          facecolor=facecolorshp, linewidth=linewidthshp)
+    
+    if len(decorators):
+        for decorator in decorators:
+            decorator = list(shpreader.Reader(decorator).geometries())
+            ax.add_geometries(decorator, ccrs.PlateCarree(), edgecolor=edgecolorshp,
+                          facecolor=facecolorshp, linewidth=linewidthshp)
     
     if drawcoast:
         ax.coastlines(resolution='10m', color='black', linewidth=0.8)
@@ -121,14 +142,15 @@ def imshow(data, shape='', figsize=(10,10), extent=[],
     gl.right_labels = False
     # Plot the image
     if clip:
-        img = ax.imshow(data, origin='lower', extent=img_extent, vmin=vmin,
+        img = ax.pcolormesh(xs, ys, data, vmin=vmin, transform=ccrs.PlateCarree(),
                         vmax=vmax, cmap=cmap, clip_path=clip)
     else:
-        img = ax.imshow(data, origin='lower', extent=img_extent, vmin=vmin,
-                        vmax=vmax, cmap=cmap)
+        img = ax.pcolormesh(xs, ys, data,
+                            vmin=vmin, transform=ccrs.PlateCarree(),
+                            vmax=vmax, cmap=cmap)
     # Add a colorbar
     plt.colorbar(img, label=label, extend=extend, orientation=orientation,
-                 pad=pad, fraction=fraction, ticks=ticks)
+                 pad=pad, fraction=fraction, ticks=ticks, format='%.1f')
     # Add a title
     plt.title(title , fontweight='bold', fontsize=10, loc='center')
 

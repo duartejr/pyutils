@@ -109,7 +109,7 @@ def read_nc(file, shape=None, var_name='pre', freq='month', start_date=0,
     lat_in: np.array
         An np.array with the latitudes in the interval provided.
     lon_in: np.array
-        An np.array with the longitudes in the interval provided.
+        An np.array with the longitu    des in the interval provided.
 
     '''
 
