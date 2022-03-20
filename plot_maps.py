@@ -12,10 +12,11 @@ import matplotlib as mpl
 from shapely.geometry import Point
 import mapclassify as mc
 
-def get_extent(shp):
+def get_bounds(shp):
     gpd_shp = gpd.read_file(shp)['geometry']
-    bounds = gpd_shp.bounds
-    return bounds.values[0]
+    bounds = gpd_shp.bounds.values[0]
+    bounds = [bounds[0], bounds[2], bounds[1], bounds[3]]
+    return bounds
 
 def external_coords(geom):
     return list(geom.exterior.coords)
@@ -50,58 +51,64 @@ def mycmap(colors, extend):
 
     return cmap
 
+def imshow(data, lon, lat, bounds=[], shape=False, decorators=[], label='',
+           vmin=np.nan, vmax=np.nan, cmap='jet', extend='both', 
+           orientation='vertical', pad=0.05, fraction=0.05, nbin=10, ticks=[],
+           title='', fontsize=10, fontweight='bold', loc='center', 
+           figsize=(10,10), filename=False, show=True, edgecolorshp='black', 
+           facecolorshp='none', linewidthshp=.5, drawcoast=False, clip=False,
+           gridlat=5, gridlon=5 ):
 
-def imshow(data, lon, lat, shape='', figsize=(10,10), extent=[], 
-            vmin=np.nan, vmax=np.nan, decorators=[],
-            cmap='jet', label='', extend='both', orientation='vertical',
-            pad=0.05, fraction=0.05, title='', fontweight='bold',
-            fontsize=10, loc='center', filename=False, show=True, gridlat=5,
-            gridlon=5, edgecolorshp='black', facecolorshp='none',
-            linewidthshp=.5, drawcoast=False, clip=False, ticks=[], nbin=10):
     """Genenerate maps using imshow function of Cartopy
 
     Args:
-        data (array): Matrix with the dada do plot
+        data (2D array): Matrix with the dada do plot
+        lon (1D array): Vector with the longitude values
+        lat (1D array): Vector with the latitude values
+        bounds (list, optional): Plot area limits. Defaults to False.
         shape (str, optional): Shapefile that demilit the plot areas. Defaults to False.
-        figsize (tuple, optional): Figure size. Defaults to (10,10).
-        extent (list, optional): Plot area limits. Defaults to False.
+        decorators (list): A list (strings) of shapefiles to decorate the plot.
+        label (str, optional): Label of the legend. Defaults to ''.
         vmin (float, optional): Minimum value to scale. Defaults to np.nan.
         vmax (float, optional): Maximum value to scale. Defaults to np.nan.
         cmap (str or list, optional): Colormap to plot str os list of colors. Defaults to 'jet'.
-        label (str, optional): Label to legend. Defaults to ''.
         extend (str, optional): Extend colorbar argument: 'both', 'max', 'min', 'none'. Defaults to 'both'.
         orientation (str, optional): Colorbar orientation. Defaults to 'vertical'.
         pad (float, optional): Distance between the plot area and the colorbar. Defaults to 0.05.
         fraction (float, optional): Colorbar size relative to the plot area. Defaults to 0.05.
+        nbin (int, optional): Segments number of the colorbar. Defaults to 10.
+        ticks (list, optional): Colorbar ticks. Defaults to [].
         title (str, optional): Image title. Defaults to ''.
-        fontweight (str, optional): Font weight. Defaults to 'bold'.
         fontsize (int, optional): Font size. Defaults to 10.
+        fontweight (str, optional): Font weight. Defaults to 'bold'.
         loc (str, optional): Colorbar position. Defaults to 'center'.
+        figsize (tuple, optional): Figure size. Defaults to (10,10).
         filename (bool, optional): Name of the file to save the plot. Defaults to False.
         show (bool, optional): If True display the plot in the workscape. Defaults to True.
-        gridlat (int, optional): Resolution of the latitude grid. Defaults to 5.
-        gridlon (int, optional): resolution of the longitude grid. Defaults to 5.
         edgecolorshp (str, optional): Shape's edge color. Defaults to 'black'.
         facecolorshp (str, optional): Shape's face color. Defaults to 'none'.
         linewidthshp (float, optional): Width of the lat-lon grid. Defaults to .5.
         drawcoast (bool, optional): If True draw the coast lines. Defaults to False.
+        gridlon (int, optional): resolution of the longitude grid. Defaults to 5.
+        gridlat (int, optional): Resolution of the latitude grid. Defaults to 5.
         clip (bool, optional): If True shows just the area inside the shapefile. Defaults to False.
-        ticks (list, optional): Colorbar ticks. Defaults to [].
-        nbin (int, optional): Segments number of the colorbar. Defaults to 10.
+        
+        
     """
     
-    # Choose the plot size (width x height, in inches)
-    plt.figure(figsize=figsize)
-    # Use the Cilindrical Equidistant projection in cartopy
-    ax = plt.axes(projection=ccrs.PlateCarree())
+    
+    plt.figure(figsize=figsize)                  # Choose the plot size (width x height, in inches)
+    ax = plt.axes(projection=ccrs.PlateCarree()) # Use the Cilindrical Equidistant projection in cartopy
+    
     xs, ys = np.meshgrid(lon, lat)
     
-    if not extent:
-        # Define the image extent [min.lon, max.lon, min.lat, max.lat]
-        extent = get_extent(shape)
-        extent = [extent[0], extent[2], extent[1], extent[3]]
+    if not len(bounds):                               # Define the image bounds [min.lon, max.lon, min.lat, max.lat]
+        if shape:
+            bounds = get_bounds(shape)
+        else:
+            bounds = [min(lon), max(lon), min(lat), max(lat)]
     
-    ax.set_extent(extent, crs=ccrs.PlateCarree())
+    ax.set_extent(bounds, crs=ccrs.PlateCarree())
     
     if clip:
         clip = clip_area(shape, ax)
@@ -130,40 +137,64 @@ def imshow(data, lon, lat, shape='', figsize=(10,10), extent=[],
                           facecolor=facecolorshp, linewidth=linewidthshp)
     
     if drawcoast:
-        ax.coastlines(resolution='10m', color='black', linewidth=0.8)
+        ax.add_feature(cartopy.feature.COASTLINE, color='black', linewidth=0.8)
+        ax.add_feature(cartopy.feature.BORDERS, edgecolor='black', linewidth=0.5)
 
-    ax.add_feature(cartopy.feature.BORDERS, edgecolor='black', linewidth=0.5)
     gl = ax.gridlines(crs=ccrs.PlateCarree(), color='gray', alpha=1.0, 
                       linestyle='--', linewidth=0.25, 
                       xlocs=np.arange(-180, 180, gridlon),
                       ylocs=np.arange(-90, 90, gridlat),
                       draw_labels=True)
+    
     gl.top_labels = False
     gl.right_labels = False
+    
     # Plot the image
     if clip:
-        img = ax.pcolormesh(xs, ys, data, vmin=vmin, transform=ccrs.PlateCarree(),
-                        vmax=vmax, cmap=cmap, clip_path=clip)
+        img = ax.pcolormesh(xs, ys, data, vmin=vmin, vmax=vmax, cmap=cmap, 
+                            transform=ccrs.PlateCarree(), clip_path=clip)
     else:
-        img = ax.pcolormesh(xs, ys, data,
-                            vmin=vmin, transform=ccrs.PlateCarree(),
-                            vmax=vmax, cmap=cmap)
+        img = ax.pcolormesh(xs, ys, data, vmin=vmin, vmax=vmax, cmap=cmap,
+                            transform=ccrs.PlateCarree())
+    
     # Add a colorbar
     plt.colorbar(img, label=label, extend=extend, orientation=orientation,
                  pad=pad, fraction=fraction, ticks=ticks, format='%.1f')
+    
     # Add a title
-    plt.title(title , fontweight='bold', fontsize=10, loc='center')
+    plt.title(title , fontweight=fontweight, fontsize=fontsize, loc=loc)
 
     # Save the image
     if filename:
         plt.savefig(filename)
+    
     # Show the image
     if show:
         plt.show()
 
-def voronoi(lon, lat, data, shp, nbin=10, grid=.1, fontsize=11, title='', vmin=200, vmax=2000, 
-            loc_legend='best', figname='', cmap='seismic', ticks=None, 
-            legend_title='Legend', show=True):
+def voronoi(lon, lat, data, shp, nbin=10, grid=.1, fontsize=11, title='', 
+            vmin=200, vmax=2000, loc_legend='best', figname='', cmap='seismic',
+            ticks=None, legend_title='Legend', show=True):
+    """_summary_
+
+    Args:
+        lon (_type_): _description_
+        lat (_type_): _description_
+        data (_type_): _description_
+        shp (_type_): _description_
+        nbin (int, optional): _description_. Defaults to 10.
+        grid (float, optional): _description_. Defaults to .1.
+        fontsize (int, optional): _description_. Defaults to 11.
+        title (str, optional): _description_. Defaults to ''.
+        vmin (int, optional): _description_. Defaults to 200.
+        vmax (int, optional): _description_. Defaults to 2000.
+        loc_legend (str, optional): _description_. Defaults to 'best'.
+        figname (str, optional): _description_. Defaults to ''.
+        cmap (str, optional): _description_. Defaults to 'seismic'.
+        ticks (_type_, optional): _description_. Defaults to None.
+        legend_title (str, optional): _description_. Defaults to 'Legend'.
+        show (bool, optional): _description_. Defaults to True.
+    """
     '''
     Gera mapa dos poligonos de Voronoi utilizados no método de Thiessen.
 

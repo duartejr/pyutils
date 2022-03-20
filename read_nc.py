@@ -18,8 +18,8 @@ def __in_poly(shp, lat, lon, buffer=0):
     #gpd_shp = gpd_shp.to_crs("EPSG:4326")
     gpd_shp = gpd_shp.buffer(buffer)
     bounds = gpd_shp.bounds
-    pos_lon = np.where((lon >= bounds. minx[0]) & (lon <= bounds. maxx[0]))[0]
-    pos_lat = np.where((lat >= bounds. miny[0]) & (lat <= bounds. maxy[0]))[0]
+    pos_lon = np.where((lon >= bounds.minx[0]) & (lon <= bounds.maxx[0]))[0]
+    pos_lat = np.where((lat >= bounds.miny[0]) & (lat <= bounds.maxy[0]))[0]
     buffer += buffer
     
     if buffer > 0:
@@ -30,11 +30,13 @@ def __in_poly(shp, lat, lon, buffer=0):
 
 
 def __read_var(file, var_name, plat, plon, ptime):
-    if len(Dataset(file).variables[var_name].shape) == 3:
+    n_dimensions = len(Dataset(file).variables[var_name].shape)
+    if n_dimensions == 3:
         var = Dataset(file).variables[var_name][ptime, plat, plon]
+    elif n_dimensions == 4:
+        var = Dataset(file).variables[var_name][:, ptime, plat, plon]
     else:
         var = Dataset(file).variables[var_name][plat, plon]
-        #var = Dataset(file).variables[var_name][ptime, :, :, plat, plon]
     return var
 
 
@@ -69,11 +71,11 @@ def __get_lat_lon_time(file, variables):
         if var.lower() in ['lat', 'latitude', 'y', 'nlat']:
             lat = Dataset(file).variables[var][:]
             
-        if var.lower() in ['lon', 'longitude', 'x', 'nlon']:
+        elif var.lower() in ['lon', 'longitude', 'x', 'nlon']:
             lon = Dataset(file).variables[var][:]
             lon[np.where(lon>180)] -= 360
         
-        if var.lower() in ['time', 'gc_t', 'gc', 's']:
+        elif var.lower() in ['time', 'gc_t', 'gc', 's']:
             time_units = Dataset(file).variables[var].units
             times = Dataset(file).variables[var][:]
             
