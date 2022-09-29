@@ -17,7 +17,7 @@ __author__: "Duarte Junior"
 __licence__: "GPL"
 __version__: "1.2.1"
 __maintener__: "Duarte Junior"
-__emal__: "duarte.junior@alu.ufc.br"
+__email__: "duarte.junior@alu.ufc.br"
 
 """Este arquivo contém o conjunto de funções necessárias para realizar o 
 cálculo do Thiessen utilizando dados de precipitação.
