@@ -16,6 +16,8 @@ import subprocess
 import importlib
 from pathlib import Path
 
+repo_root = Path(__file__).parent
+
 
 def print_section(title):
     print(f"\n{'='*70}")
@@ -27,7 +29,7 @@ def test_deleted_files():
     """Prove duplicate/empty/embedded files were removed."""
     print_section("TEST 1: Deleted Files (No More Duplicates/Stubs)")
 
-    repo = Path("/home/user/pyutils")
+    repo = repo_root
 
     should_not_exist = [
         "plot_maps_old.py",     # duplicate
@@ -53,7 +55,7 @@ def test_remaining_files_exist():
     """Prove all expected modules are still present."""
     print_section("TEST 2: Remaining Files Still Present")
 
-    repo = Path("/home/user/pyutils")
+    repo = repo_root
 
     should_exist = [
         "pyproject.toml",
@@ -99,7 +101,7 @@ def test_bug_fixes():
     all_pass = True
 
     # 1. thiessen.py: pd.pd.DataFrame → pd.DataFrame
-    thiessen_src = Path("/home/user/pyutils/thiessen.py").read_text()
+    thiessen_src = (repo_root / "thiessen.py").read_text()
     if "pd.pd.DataFrame" not in thiessen_src:
         print("✅ thiessen.py: pd.pd.DataFrame typo is FIXED")
     else:
@@ -113,7 +115,7 @@ def test_bug_fixes():
         all_pass = False
 
     # 2. buffer.py: debug print removed
-    buffer_src = Path("/home/user/pyutils/buffer.py").read_text()
+    buffer_src = (repo_root / "buffer.py").read_text()
     if "print(ds_out)" not in buffer_src:
         print("✅ buffer.py: debug print(ds_out) is REMOVED")
     else:
@@ -121,7 +123,7 @@ def test_bug_fixes():
         all_pass = False
 
     # 3. rv/RvOns.py: broken utils import removed
-    rvons_src = Path("/home/user/pyutils/rv/RvOns.py").read_text()
+    rvons_src = (repo_root / "rv/RvOns.py").read_text()
     if "from utils import basinsf" not in rvons_src:
         print("✅ rv/RvOns.py: broken 'from utils import basinsf' is REMOVED")
     else:
@@ -129,7 +131,7 @@ def test_bug_fixes():
         all_pass = False
 
     # 4. rvGamma.py: broken utils imports removed
-    rvgamma_src = Path("/home/user/pyutils/rvGamma.py").read_text()
+    rvgamma_src = (repo_root / "rvGamma.py").read_text()
     if "from utils.get_tri_files" not in rvgamma_src:
         print("✅ rvGamma.py: broken utils imports are REMOVED")
     else:
@@ -137,7 +139,7 @@ def test_bug_fixes():
         all_pass = False
 
     # 5. rv/plr.py: syntax error fixed (no bare function body)
-    plr_src = Path("/home/user/pyutils/rv/plr.py").read_text()
+    plr_src = (repo_root / "rv/plr.py").read_text()
     try:
         compile(plr_src, "rv/plr.py", "exec")
         print("✅ rv/plr.py: compiles without syntax errors")
@@ -198,29 +200,29 @@ def test_module_imports():
 
 
 def test_version_bump():
-    """Prove version was bumped to 0.2.0."""
-    print_section("TEST 5: Version Bumped to 0.2.0")
+    """Prove version is at 0.3.0 (Phase 3 bump)."""
+    print_section("TEST 5: Version at 0.3.0")
 
     all_pass = True
 
     # Check pyproject.toml
     import tomllib
-    with open("/home/user/pyutils/pyproject.toml", "rb") as f:
+    with open(repo_root / "pyproject.toml", "rb") as f:
         config = tomllib.load(f)
 
     version = config["project"]["version"]
-    if version == "0.2.0":
+    if version == "0.3.0":
         print(f"✅ pyproject.toml version = '{version}'")
     else:
-        print(f"❌ pyproject.toml version = '{version}' (expected '0.2.0')")
+        print(f"❌ pyproject.toml version = '{version}' (expected '0.3.0')")
         all_pass = False
 
     # Check __init__.py
-    init_src = Path("/home/user/pyutils/__init__.py").read_text()
-    if '__version__ = "0.2.0"' in init_src:
-        print(f"✅ __init__.py __version__ = '0.2.0'")
+    init_src = (repo_root / "__init__.py").read_text()
+    if '__version__ = "0.3.0"' in init_src:
+        print(f"✅ __init__.py __version__ = '0.3.0'")
     else:
-        print(f"❌ __init__.py __version__ not updated to 0.2.0")
+        print(f"❌ __init__.py __version__ not updated to 0.3.0")
         all_pass = False
 
     # Check installed version (reload to avoid cached stale module)
@@ -228,20 +230,20 @@ def test_version_bump():
     if "pyutils" in sys.modules:
         del sys.modules["pyutils"]
     import pyutils
-    if pyutils.__version__ == "0.2.0":
+    if pyutils.__version__ == "0.3.0":
         print(f"✅ Installed pyutils.__version__ = '{pyutils.__version__}'")
     else:
-        print(f"❌ Installed version = '{pyutils.__version__}' (expected '0.2.0')")
+        print(f"❌ Installed version = '{pyutils.__version__}' (expected '0.3.0')")
         all_pass = False
 
     # Check pip show
     result = subprocess.run(["pip", "show", "pyutils"], capture_output=True, text=True)
     for line in result.stdout.splitlines():
         if line.startswith("Version:"):
-            if "0.2.0" in line:
+            if "0.3.0" in line:
                 print(f"✅ pip show pyutils: {line.strip()}")
             else:
-                print(f"❌ pip show pyutils: {line.strip()} (expected 0.2.0)")
+                print(f"❌ pip show pyutils: {line.strip()} (expected 0.3.0)")
                 all_pass = False
 
     return all_pass
@@ -253,8 +255,8 @@ def test_github_actions():
 
     all_pass = True
 
-    ci_path = Path("/home/user/pyutils/.github/workflows/ci.yml")
-    release_path = Path("/home/user/pyutils/.github/workflows/release.yml")
+    ci_path = repo_root / ".github/workflows/ci.yml"
+    release_path = repo_root / ".github/workflows/release.yml"
 
     for path in [ci_path, release_path]:
         if path.exists():
@@ -304,7 +306,7 @@ def test_no_broken_imports_in_code():
     """Scan remaining source for known broken import patterns."""
     print_section("TEST 7: No Broken Import Patterns in Source")
 
-    repo = Path("/home/user/pyutils")
+    repo = repo_root
     all_py = list(repo.glob("*.py")) + list(repo.glob("rv/*.py")) + list(repo.glob("pyeto/*.py"))
     all_py = [p for p in all_py if "__pycache__" not in str(p)]
 
@@ -352,7 +354,7 @@ def main():
         ("Remaining Files Present", test_remaining_files_exist),
         ("Bug Fixes Verified", test_bug_fixes),
         ("Module Imports Clean", test_module_imports),
-        ("Version Bumped to 0.2.0", test_version_bump),
+        ("Version at 0.3.0", test_version_bump),
         ("GitHub Actions Workflows", test_github_actions),
         ("No Broken Import Patterns", test_no_broken_imports_in_code),
     ]
