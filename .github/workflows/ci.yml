@@ -10,8 +10,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.11"]
 
     steps:
       - uses: actions/checkout@v4
@@ -21,19 +22,44 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install system dependencies
+      - name: Install system dependencies for geospatial libs
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y libgeos-dev libproj-dev proj-data proj-bin
+          sudo apt-get install -y \
+            libgeos-dev libgeos++-dev \
+            libproj-dev proj-data proj-bin \
+            libspatialindex-dev
 
-      - name: Install package
-        run: pip install -e ".[dev]"
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
 
-      - name: Verify package installation
+      - name: Install core package (no heavy optional deps)
+        # Install without cartopy/geovoronoi first so CI doesn't fail on
+        # C-extension builds in constrained environments.
         run: |
-          python -c "import pyutils; print(f'pyutils v{pyutils.__version__} installed OK')"
-          python -c "import pyeto; print('pyeto subpackage OK')"
-          python -c "import rv; print('rv subpackage OK')"
+          pip install numpy pandas scipy shapely geopandas netCDF4 \
+                      matplotlib mapclassify scikit-learn python-dateutil \
+                      geovoronoi
+          pip install --no-deps -e .
 
-      - name: Run verification tests
+      - name: Try installing cartopy (best-effort, not required for tests)
+        run: pip install cartopy || echo "cartopy install failed — skipping"
+
+      - name: Verify core package import
+        run: |
+          python -c "import pyutils; print(f'✅ pyutils v{pyutils.__version__}')"
+          python -c "import pyeto; print('✅ pyeto OK')"
+          python -c "import rv;     print('✅ rv OK')"
+          python -c "import read_nc, evapotranspiration, thiessen; print('✅ core modules OK')"
+
+      - name: Install dev/test dependencies
+        run: pip install pytest pytest-cov
+
+      - name: Run Phase 1 verification tests
         run: python test_phase1_verification.py
+
+      - name: Run Phase 2 verification tests
+        run: python test_phase2_verification.py
+
+      - name: Run Phase 3 verification tests
+        run: python test_phase3_verification.py
