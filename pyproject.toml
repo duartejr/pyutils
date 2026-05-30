@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyutils"
-version = "0.1.0"
+version = "0.2.0"
 description = "Geospatial analysis and hydrology utilities for Python"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -67,6 +67,13 @@ Issues = "https://github.com/duartejr/pyutils/issues"
 
 [tool.setuptools]
 packages = ["pyeto", "rv"]
+py-modules = [
+    "bh_thorthwaite", "bh_thorthwaite2", "buffer", "ccsthorthwaite",
+    "corr_med", "custom_colorbar", "eto", "evapotranspiration", "getvertshp",
+    "idw", "isinpoly", "isinshp", "plot_maps",
+    "read_nc", "rvGamma", "shp_area", "spi", "thiessen", "vazoes_minimas",
+    "pyutils"
+]
 
 [tool.black]
 line-length = 100

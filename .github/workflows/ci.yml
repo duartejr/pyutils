@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y libgeos-dev libproj-dev proj-data proj-bin
+
+      - name: Install package
+        run: pip install -e ".[dev]"
+
+      - name: Verify package installation
+        run: |
+          python -c "import pyutils; print(f'pyutils v{pyutils.__version__} installed OK')"
+          python -c "import pyeto; print('pyeto subpackage OK')"
+          python -c "import rv; print('rv subpackage OK')"
+
+      - name: Run verification tests
+        run: python test_phase1_verification.py

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from utils import basinsf
 
 
 def rv_ons(pr_grad, model, basin, subbasin, month):

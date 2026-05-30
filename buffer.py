@@ -36,5 +36,3 @@ def buffer(infile, outfile, buffdist):
         layer.CreateFeature(feature)
         del geom
     ds_out.Destroy()
-    
-    print(ds_out)
