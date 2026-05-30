@@ -234,7 +234,7 @@ def test_version_bump():
     all_pass = True
 
     import tomllib
-    with open("pyproject.toml", "rb") as f:
+    with open(repo_root / "pyproject.toml", "rb") as f:
         config = tomllib.load(f)
     v = config["project"]["version"]
     if v == "0.3.0":
@@ -316,7 +316,7 @@ def test_phase1_still_passes():
     print_section("TEST 7: Phase 1 Test Suite Still Passes")
 
     result = subprocess.run(
-        [sys.executable, "test_phase1_verification.py"],
+        [sys.executable, str(repo_root / "test_phase1_verification.py")],
         capture_output=True, text=True
     )
     lines = result.stdout.splitlines()
