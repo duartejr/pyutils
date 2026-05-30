@@ -18,6 +18,8 @@ import importlib
 import inspect
 from pathlib import Path
 
+repo_root = Path(__file__).parent
+
 
 def print_section(title):
     print(f"\n{'='*70}")
@@ -32,7 +34,7 @@ def test_ci_root_cause_fixes():
     all_pass = True
 
     # --- Root cause 1: hardcoded version "0.1.0" in test_phase1_verification.py ---
-    src = Path("test_phase1_verification.py").read_text()
+    src = (repo_root / "test_phase1_verification.py").read_text()
     if '"version": "0.1.0"' not in src:
         print("✅ test_phase1_verification.py: hardcoded version '0.1.0' REMOVED")
     else:
@@ -54,7 +56,7 @@ def test_ci_root_cause_fixes():
         all_pass = False
 
     # --- Root cause 3: CI fail-fast was True (default), cancelling sibling jobs ---
-    ci = Path(".github/workflows/ci.yml").read_text()
+    ci = (repo_root / ".github/workflows/ci.yml").read_text()
     if "fail-fast: false" in ci:
         print("✅ ci.yml: fail-fast: false — sibling jobs no longer cancelled on one failure")
     else:
@@ -89,7 +91,7 @@ def test_readme():
     """Prove README.md is comprehensive."""
     print_section("TEST 2: README.md Written")
 
-    readme = Path("README.md")
+    readme = repo_root / "README.md"
     if not readme.exists():
         print("❌ README.md does not exist")
         return False
@@ -200,7 +202,7 @@ def test_read_nc_docstrings_and_types():
             print(f"⚠️  {fn_name}(): no type hints")
 
     # Private helpers renamed (__ → _)
-    src = Path("read_nc.py").read_text()
+    src = (repo_root / "read_nc.py").read_text()
     if "def _in_poly" in src and "def __in_poly" not in src:
         print("✅ read_nc.py: private helpers use single-underscore convention (_in_poly)")
     else:
@@ -241,14 +243,14 @@ def test_version_bump():
         print(f"❌ pyproject.toml version = '{v}' (expected '0.3.0')")
         all_pass = False
 
-    init_src = Path("__init__.py").read_text()
+    init_src = (repo_root / "__init__.py").read_text()
     if '__version__ = "0.3.0"' in init_src:
         print("✅ __init__.py __version__ = '0.3.0'")
     else:
         print("❌ __init__.py version not 0.3.0")
         all_pass = False
 
-    pyutils_src = Path("pyutils.py").read_text()
+    pyutils_src = (repo_root / "pyutils.py").read_text()
     if '__version__ = "0.3.0"' in pyutils_src:
         print("✅ pyutils.py __version__ = '0.3.0'")
     else:

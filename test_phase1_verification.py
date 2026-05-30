@@ -14,6 +14,8 @@ import subprocess
 import importlib.util
 from pathlib import Path
 
+repo_root = Path(__file__).parent
+
 
 def print_section(title):
     """Print a formatted section header."""
@@ -142,7 +144,7 @@ def test_pyproject_toml():
     all_pass = True
 
     # Check pyproject.toml
-    pyproject_path = Path("/home/user/pyutils/pyproject.toml")
+    pyproject_path = repo_root / "pyproject.toml"
     if pyproject_path.exists():
         print(f"✅ pyproject.toml exists at {pyproject_path}")
         try:
@@ -193,7 +195,7 @@ def test_pyproject_toml():
         all_pass = False
 
     # Check setup.py
-    setup_path = Path("/home/user/pyutils/setup.py")
+    setup_path = repo_root / "setup.py"
     if setup_path.exists():
         print(f"\n✅ setup.py exists")
     else:
