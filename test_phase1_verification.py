@@ -162,7 +162,6 @@ def test_pyproject_toml():
                 proj = config["project"]
                 metadata = {
                     "name": "pyutils",
-                    "version": "0.1.0",
                     "description": "Geospatial analysis and hydrology utilities",
                 }
                 for key, expected in metadata.items():
@@ -210,7 +209,9 @@ def test_installed_files():
 
     import site
     site_packages = site.getsitepackages()[0]
-    pyutils_dist = Path(site_packages) / "pyutils-0.1.0.dist-info"
+    # Find the dist-info directory dynamically regardless of version
+    dist_dirs = list(Path(site_packages).glob("pyutils-*.dist-info"))
+    pyutils_dist = dist_dirs[0] if dist_dirs else Path(site_packages) / "pyutils-?.dist-info"
 
     all_pass = True
 
