@@ -1,5 +1,3 @@
 #!/usr/bin/env python3
-import lpsolve
-
-def rv(l, alpha, beta, lambda):
-    
+# Piecewise linear regression rainfall correction.
+# Placeholder — implementation pending.

@@ -130,7 +130,7 @@ def geo_coords(coords: np.array) -> gpd.GeoDataFrame:
     gdf1 = gpd.GeoDataFrame(df1, geometry='geometry')
     return gdf1
 
-def read_pr(files: list, dt: date, monthly: str = False) -> pd.pd.DataFrame:
+def read_pr(files: list, dt: date, monthly: str = False) -> pd.DataFrame:
     """Realiza a leituda dos dados de precipitação para uma determinada data.
 
     Args:
@@ -139,7 +139,7 @@ def read_pr(files: list, dt: date, monthly: str = False) -> pd.pd.DataFrame:
         monthly (str, optional): Se True calcula o acumulado mensal de cada postos. Defaults to False.
 
     Returns:
-        pd.pd.DataFrame: Dados de precipitação de cada um dos postos dentro da área de interesse.
+        pd.DataFrame: Dados de precipitação de cada um dos postos dentro da área de interesse.
     """
     
     for i, pr_file in enumerate(files):
