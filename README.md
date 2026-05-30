@@ -26,6 +26,8 @@ A Python toolkit for hydroclimate data processing: evapotranspiration, geospatia
 
 ## Installation
 
+**Python version requirement:** Python >= 3.11
+
 ```bash
 git clone https://github.com/duartejr/pyutils.git
 cd pyutils
