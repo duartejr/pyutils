@@ -116,13 +116,9 @@ def _gamma_to_standard_normal(
 
 
 def spi(
-    data: np.ndarray | None = None,
-    scale: int | None = None,
-    nseas: int | None = None,
-    *,
-    monthly_values: np.ndarray | None = None,
-    accumulation_scale: int | None = None,
-    num_seasons: int | None = None,
+    monthly_values: np.ndarray,
+    accumulation_scale: int,
+    num_seasons: int,
 ) -> np.ndarray:
     """Compute the Standardized Precipitation Index for a monthly time series.
 
@@ -131,23 +127,14 @@ def spi(
         2. For each season, fit a Gamma distribution to non-zero values.
         3. Apply the mixed-distribution CDF and transform to standard normal.
 
-    **Parameter names:** The function accepts both old (data, scale, nseas) and
-    new (monthly_values, accumulation_scale, num_seasons) parameter names for
-    backward compatibility. If both are provided, the new names take precedence.
-
     Args:
-        data: Monthly precipitation time series (deprecated, use monthly_values).
-            Shape ``(n_months,)``.
-        scale: Aggregation window in months (deprecated, use accumulation_scale).
-            Common values: 1, 3, 6, 12. A scale of 1 uses raw monthly totals;
-            larger scales capture medium- to long-term drought.
-        nseas: Number of seasons per year (deprecated, use num_seasons).
-            Typically 12 for monthly, 4 for quarterly. Determines which months
-            are grouped together when fitting the Gamma distribution.
         monthly_values: Monthly precipitation time series. Shape ``(n_months,)``.
-            Preferred over *data*.
-        accumulation_scale: Aggregation window in months. Preferred over *scale*.
-        num_seasons: Number of seasons per year. Preferred over *nseas*.
+        accumulation_scale: Aggregation window in months (e.g. 1, 3, 6, 12).
+            A scale of 1 uses raw monthly totals; larger scales capture
+            medium- to long-term drought.
+        num_seasons: Number of seasons per year (typically 12 for monthly).
+            Determines which months are grouped together when fitting the
+            Gamma distribution.
 
     Returns:
         SPI time series of the same length as the accumulated series.
@@ -160,29 +147,17 @@ def spi(
         >>> from spi import spi
         >>> rng = np.random.default_rng(0)
         >>> precipitation = rng.exponential(scale=80, size=120)  # 10 years
-        >>> standardized_index = spi(precipitation, scale=3, nseas=12)
+        >>> standardized_index = spi(precipitation, accumulation_scale=3, num_seasons=12)
         >>> standardized_index.shape
         (118,)
     """
-    # Resolve parameter names: new names override old names for backward compat.
-    monthly_values_arr = monthly_values if monthly_values is not None else data
-    accumulation_scale_val = accumulation_scale if accumulation_scale is not None else scale
-    num_seasons_val = num_seasons if num_seasons is not None else nseas
+    monthly_values = np.asarray(monthly_values, dtype=float)
 
-    if monthly_values_arr is None:
-        raise ValueError("Must provide monthly_values (or deprecated data)")
-    if accumulation_scale_val is None:
-        raise ValueError("Must provide accumulation_scale (or deprecated scale)")
-    if num_seasons_val is None:
-        raise ValueError("Must provide num_seasons (or deprecated nseas)")
-
-    monthly_values_arr = np.asarray(monthly_values_arr, dtype=float)
-
-    accumulated_values = _accumulate_precipitation(monthly_values_arr, accumulation_scale_val)
+    accumulated_values = _accumulate_precipitation(monthly_values, accumulation_scale)
     standardized_index = np.zeros(accumulated_values.shape)
 
-    for season in range(num_seasons_val):
-        season_indices = np.arange(season, len(accumulated_values), num_seasons_val)
+    for season in range(num_seasons):
+        season_indices = np.arange(season, len(accumulated_values), num_seasons)
         season_values = accumulated_values[season_indices]
 
         zero_probability = _compute_zero_probability(season_values)
