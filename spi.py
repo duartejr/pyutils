@@ -1,4 +1,17 @@
-# -*- coding: utf-8 -*-
+"""Standardized Precipitation Index (SPI) computation.
+
+The SPI quantifies precipitation anomalies relative to a long-term baseline.
+Each month's accumulated precipitation is fitted to a Gamma distribution per
+season, then transformed to a standard normal variate. Negative SPI values
+indicate drought; positive values indicate wet conditions.
+
+References:
+    McKee, T. B., Doesken, N. J., & Kleist, J. (1993). The relationship of
+    drought frequency and duration to time scales. Proceedings of the 8th
+    Conference on Applied Climatology, 179-184.
+
+    Adapted from Taesam Lee (Dec. 2009), INRS-ETE, Quebec, Canada.
+"""
 
 __author__ = ["Paulo Jarbas Camurca"]
 __credits__ = ["Fco Vasconcelos", "Marcelo Rodrigues", "Daniel Pinto"]
@@ -6,54 +19,149 @@ __license__ = "GPL"
 __version__ = "1.0"
 __email__ = "pjarbas312@gmail.com"
 
-
 import numpy as np
 from scipy.stats import gamma, norm
 
 
-def spi(data, scale, nseas):
+def _accumulate_precipitation(
+    monthly_values: np.ndarray,
+    accumulation_scale: int,
+) -> np.ndarray:
+    """Slide a window of length *accumulation_scale* over monthly precipitation.
 
-    '''
-    Cálculo do SPI
-    Adaptado de  Taesam Lee,  Dec.03,2009 INRS-ETE, Quebec, Canada
+    Args:
+        monthly_values: Monthly precipitation time series. Shape ``(n_months,)``.
+        accumulation_scale: Number of months to accumulate (e.g. 1, 3, 6, 12).
 
-    param: data  - Vetor de dados mensais
-    param: scale - Valor da escala do spi: 1, 3, 4, ou 6
-    param: nseas - Número de estações
-    return:      - O valor do spi e os parametros da função gama
-    '''
+    Returns:
+        Accumulated precipitation for each valid time step.
+        Shape ``(n_months - accumulation_scale + 1,)``.
+    """
+    window_slices = [
+        monthly_values[offset : len(monthly_values) - accumulation_scale + offset + 1]
+        for offset in range(accumulation_scale)
+    ]
+    stacked_windows = np.array(window_slices).T  # (n_valid_steps, accumulation_scale)
 
-    # Data setting to scaled dataset
-    # A1 = np.zeros((0, scale))
-    A1 = []
+    if stacked_windows.ndim == 2:
+        return stacked_windows.sum(axis=1)
+    return stacked_windows
 
-    for i in range(scale):
-        A1.append(data[i:len(data)-scale+i+1])
-    
-    A1 = np.array(A1).T
-    
-    if A1.ndim == 2:
-        XS = A1.sum(axis=1)
-    else:
-        XS = A1
 
-    sz = XS.shape
-    Z = np.zeros(sz)
-    phat = np.zeros((nseas, 2))
+def _remove_zeros_and_nans(values: np.ndarray) -> np.ndarray:
+    """Return *values* with zeros and NaNs removed.
 
-    for i in range(nseas):
-        tind = np.arange(i, len(XS), nseas)
-        Xn = XS[tind]
-        zeroa = Xn[np.where(Xn==0)]
-        nnan = np.sum(np.isnan(Xn))
-        Xn_nozero = Xn[np.nonzero(Xn)]  # removing zeros
-        Xn_nozero = Xn_nozero[~np.isnan(Xn_nozero)] # removing nan        
-        q = len(zeroa)/float(len(Xn) - nnan)
-        parm = gamma.fit(Xn_nozero, floc=0)
-        phat[i, 0] = parm[0]
-        phat[i, 1] = parm[2]
+    Args:
+        values: Input array, may contain zeros and NaNs.
 
-        Gam_xs = q+(1-q)*gamma.cdf(Xn, parm[0], scale=parm[2])
-        Z[tind] = norm.ppf(Gam_xs)
+    Returns:
+        Filtered array containing only finite, positive values.
+    """
+    nonzero_values = values[np.nonzero(values)]
+    return nonzero_values[~np.isnan(nonzero_values)]
 
-    return Z
+
+def _compute_zero_probability(season_values: np.ndarray) -> float:
+    """Estimate the probability of a zero-precipitation month.
+
+    Args:
+        season_values: Precipitation values for one season across all years.
+
+    Returns:
+        Proportion of time steps with zero precipitation (excluding NaNs).
+    """
+    zero_occurrences = season_values[season_values == 0]
+    nan_count = int(np.sum(np.isnan(season_values)))
+    valid_count = len(season_values) - nan_count
+    return len(zero_occurrences) / float(valid_count)
+
+
+def _gamma_to_standard_normal(
+    season_values: np.ndarray,
+    zero_probability: float,
+    shape_parameter: float,
+    scale_parameter: float,
+) -> np.ndarray:
+    """Transform Gamma-distributed values to standard normal variates.
+
+    Applies the mixed distribution transformation:
+        H(x) = zero_probability + (1 - zero_probability) * Gamma_CDF(x)
+        SPI   = Phi^-1(H(x))
+
+    where Phi^-1 is the inverse standard normal CDF.
+
+    Args:
+        season_values: Accumulated precipitation for one season.
+        zero_probability: Probability of zero precipitation.
+        shape_parameter: Fitted Gamma shape parameter (alpha).
+        scale_parameter: Fitted Gamma scale parameter (beta).
+
+    Returns:
+        Standard normal variates (SPI values) for each time step.
+    """
+    gamma_cdf_values = (
+        zero_probability
+        + (1 - zero_probability)
+        * gamma.cdf(season_values, shape_parameter, scale=scale_parameter)
+    )
+    return norm.ppf(gamma_cdf_values)
+
+
+def spi(
+    monthly_values: np.ndarray,
+    accumulation_scale: int,
+    num_seasons: int,
+) -> np.ndarray:
+    """Compute the Standardized Precipitation Index for a monthly time series.
+
+    Steps:
+        1. Accumulate precipitation over *accumulation_scale* months.
+        2. For each season, fit a Gamma distribution to non-zero values.
+        3. Apply the mixed-distribution CDF and transform to standard normal.
+
+    Args:
+        monthly_values: Monthly precipitation time series. Shape ``(n_months,)``.
+        accumulation_scale: Aggregation window in months. Common values: 1, 3,
+            6, 12. A scale of 1 uses raw monthly totals; larger scales capture
+            medium- to long-term drought.
+        num_seasons: Number of seasons per year (12 for monthly, 4 for
+            quarterly). Determines which months are grouped together when
+            fitting the Gamma distribution.
+
+    Returns:
+        SPI time series of the same length as the accumulated series.
+        Negative values indicate drought; positive values indicate surplus.
+        Shape ``(n_months - accumulation_scale + 1,)``.
+
+    Example:
+        >>> import numpy as np
+        >>> from spi import spi
+        >>> rng = np.random.default_rng(0)
+        >>> precipitation = rng.exponential(scale=80, size=120)  # 10 years
+        >>> standardized_index = spi(precipitation, accumulation_scale=3, num_seasons=12)
+        >>> standardized_index.shape
+        (118,)
+    """
+    accumulated_values = _accumulate_precipitation(monthly_values, accumulation_scale)
+    standardized_index = np.zeros(accumulated_values.shape)
+    gamma_parameters = np.zeros((num_seasons, 2))
+
+    for season in range(num_seasons):
+        season_indices = np.arange(season, len(accumulated_values), num_seasons)
+        season_values = accumulated_values[season_indices]
+
+        zero_probability = _compute_zero_probability(season_values)
+        clean_values = _remove_zeros_and_nans(season_values)
+
+        fitted_params = gamma.fit(clean_values, floc=0)
+        shape_parameter = fitted_params[0]
+        scale_parameter = fitted_params[2]
+
+        gamma_parameters[season, 0] = shape_parameter
+        gamma_parameters[season, 1] = scale_parameter
+
+        standardized_index[season_indices] = _gamma_to_standard_normal(
+            season_values, zero_probability, shape_parameter, scale_parameter
+        )
+
+    return standardized_index
