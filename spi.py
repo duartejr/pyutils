@@ -48,7 +48,7 @@ def spi(data, scale, nseas):
         nnan = np.sum(np.isnan(Xn))
         Xn_nozero = Xn[np.nonzero(Xn)]  # removing zeros
         Xn_nozero = Xn_nozero[~np.isnan(Xn_nozero)] # removing nan        
-        q = len(zeroa)/np.float(len(Xn) - nnan)
+        q = len(zeroa)/float(len(Xn) - nnan)
         parm = gamma.fit(Xn_nozero, floc=0)
         phat[i, 0] = parm[0]
         phat[i, 1] = parm[2]
