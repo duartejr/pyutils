@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyutils"
-version = "0.3.0"
+version = "0.4.0"
 description = "Geospatial analysis and hydrology utilities for Python"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -56,10 +56,15 @@ dev = [
     "mypy>=0.9",
     "isort>=5.0",
 ]
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.0",
+    "mkdocstrings[python]>=0.24",
+]
 
 [project.urls]
 Repository = "https://github.com/duartejr/pyutils"
-Documentation = "https://github.com/duartejr/pyutils#readme"
+Documentation = "https://duartejr.github.io/pyutils"
 Issues = "https://github.com/duartejr/pyutils/issues"
 
 [tool.setuptools]

@@ -228,8 +228,8 @@ def test_read_nc_docstrings_and_types():
 
 
 def test_version_bump():
-    """Prove version is 0.3.0 in all locations."""
-    print_section("TEST 5: Version 0.3.0 in All Locations")
+    """Prove version is consistent across all locations (reads from pyproject.toml)."""
+    print_section("TEST 5: Version Consistent Across All Locations")
 
     all_pass = True
 
@@ -237,43 +237,40 @@ def test_version_bump():
     with open(repo_root / "pyproject.toml", "rb") as f:
         config = tomllib.load(f)
     v = config["project"]["version"]
-    if v == "0.3.0":
-        print(f"✅ pyproject.toml version = '{v}'")
-    else:
-        print(f"❌ pyproject.toml version = '{v}' (expected '0.3.0')")
-        all_pass = False
+    print(f"✅ pyproject.toml version = '{v}'")
 
     init_src = (repo_root / "__init__.py").read_text()
-    if '__version__ = "0.3.0"' in init_src:
-        print("✅ __init__.py __version__ = '0.3.0'")
+    if f'__version__ = "{v}"' in init_src:
+        print(f"✅ __init__.py __version__ = '{v}'")
     else:
-        print("❌ __init__.py version not 0.3.0")
+        print(f"❌ __init__.py version not {v}")
         all_pass = False
 
     pyutils_src = (repo_root / "pyutils.py").read_text()
-    if '__version__ = "0.3.0"' in pyutils_src:
-        print("✅ pyutils.py __version__ = '0.3.0'")
+    if f'__version__ = "{v}"' in pyutils_src:
+        print(f"✅ pyutils.py __version__ = '{v}'")
     else:
-        print("❌ pyutils.py version not 0.3.0")
+        print(f"❌ pyutils.py version not {v}")
         all_pass = False
 
     result = subprocess.run(["pip", "show", "pyutils"], capture_output=True, text=True)
     for line in result.stdout.splitlines():
         if line.startswith("Version:"):
-            if "0.3.0" in line:
+            installed_version = line.split(":", 1)[1].strip()
+            if installed_version == v:
                 print(f"✅ pip show: {line.strip()}")
             else:
-                print(f"❌ pip show: {line.strip()} (expected 0.3.0)")
+                print(f"❌ pip show: {line.strip()} (expected {v})")
                 all_pass = False
 
     # Confirm pyutils module reports correct version
     if "pyutils" in sys.modules:
         del sys.modules["pyutils"]
     import pyutils
-    if pyutils.__version__ == "0.3.0":
+    if pyutils.__version__ == v:
         print(f"✅ import pyutils.__version__ = '{pyutils.__version__}'")
     else:
-        print(f"❌ import pyutils.__version__ = '{pyutils.__version__}' (expected '0.3.0')")
+        print(f"❌ import pyutils.__version__ = '{pyutils.__version__}' (expected '{v}')")
         all_pass = False
 
     return all_pass
@@ -349,7 +346,7 @@ def main():
         ("README.md Written", test_readme),
         ("evapotranspiration.py Docstrings/Types/Correctness", test_evapotranspiration_docstrings_and_types),
         ("read_nc.py Docstrings/Types", test_read_nc_docstrings_and_types),
-        ("Version 0.3.0 Everywhere", test_version_bump),
+        ("Version Consistent Across All Locations", test_version_bump),
         ("All Modules Import After Refactor", test_all_modules_still_import),
         ("Phase 1 Test Suite Still Passes", test_phase1_still_passes),
     ]
