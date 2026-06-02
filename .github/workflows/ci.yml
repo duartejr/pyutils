@@ -63,3 +63,12 @@ jobs:
 
       - name: Run Phase 3 verification tests
         run: python test_phase3_verification.py
+
+      - name: Run Phase 4B unit tests
+        run: pytest tests/ -v --tb=short
+
+      - name: Install docs dependencies
+        run: pip install "mkdocs>=1.5" "mkdocs-material>=9.0" "mkdocstrings[python]>=0.24"
+
+      - name: Verify docs build
+        run: mkdocs build --strict

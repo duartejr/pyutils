@@ -1,0 +1,95 @@
+site_name: pyutils
+site_description: Hydroclimate analysis toolkit — evapotranspiration, spatial interpolation, precipitation indices, NetCDF I/O, and cartographic utilities.
+site_author: Duarte Junior
+site_url: https://duartejr.github.io/pyutils
+repo_url: https://github.com/duartejr/pyutils
+repo_name: duartejr/pyutils
+edit_uri: edit/master/docs/
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_submodules: false
+            members_order: source
+            heading_level: 2
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+  - API Reference:
+    - Evapotranspiration: api/evapotranspiration.md
+    - SPI: api/spi.md
+    - IDW: api/idw.md
+    - pyeto:
+      - FAO-56: api/pyeto/fao.md
+      - Conversions: api/pyeto/convert.md
+      - Validation: api/pyeto/check.md
+    - Other Modules:
+      - read_nc: api/read_nc.md
+      - plot_maps: api/plot_maps.md
+      - thiessen: api/thiessen.md
+      - corr_med: api/corr_med.md
+  - Changelog: changelog.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/duartejr/pyutils
+  version:
+    provider: mike
+
+copyright: Copyright &copy; 2024 Duarte Junior — GPL-3.0-or-later

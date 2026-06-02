@@ -1,0 +1,39 @@
+name: Docs
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install core package (mkdocstrings needs to import modules)
+        run: |
+          pip install numpy pandas scipy shapely geopandas matplotlib \
+                      mapclassify scikit-learn python-dateutil
+          pip install --no-deps -e .
+
+      - name: Install docs dependencies
+        run: pip install "mkdocs>=1.5" "mkdocs-material>=9.0" "mkdocstrings[python]>=0.24"
+
+      - name: Build docs
+        run: mkdocs build --strict
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: mkdocs gh-deploy --force
