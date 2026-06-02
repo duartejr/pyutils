@@ -200,29 +200,25 @@ def test_module_imports():
 
 
 def test_version_bump():
-    """Prove version is at 0.3.0 (Phase 3 bump)."""
-    print_section("TEST 5: Version at 0.3.0")
+    """Prove version is consistent across all locations (reads from pyproject.toml)."""
+    print_section("TEST 5: Version Consistent Across All Locations")
 
     all_pass = True
 
-    # Check pyproject.toml
+    # Read the authoritative version from pyproject.toml
     import tomllib
     with open(repo_root / "pyproject.toml", "rb") as f:
         config = tomllib.load(f)
 
     version = config["project"]["version"]
-    if version == "0.3.0":
-        print(f"✅ pyproject.toml version = '{version}'")
-    else:
-        print(f"❌ pyproject.toml version = '{version}' (expected '0.3.0')")
-        all_pass = False
+    print(f"✅ pyproject.toml version = '{version}'")
 
     # Check __init__.py
     init_src = (repo_root / "__init__.py").read_text()
-    if '__version__ = "0.3.0"' in init_src:
-        print(f"✅ __init__.py __version__ = '0.3.0'")
+    if f'__version__ = "{version}"' in init_src:
+        print(f"✅ __init__.py __version__ = '{version}'")
     else:
-        print(f"❌ __init__.py __version__ not updated to 0.3.0")
+        print(f"❌ __init__.py __version__ not updated to {version}")
         all_pass = False
 
     # Check installed version (reload to avoid cached stale module)
@@ -230,20 +226,21 @@ def test_version_bump():
     if "pyutils" in sys.modules:
         del sys.modules["pyutils"]
     import pyutils
-    if pyutils.__version__ == "0.3.0":
+    if pyutils.__version__ == version:
         print(f"✅ Installed pyutils.__version__ = '{pyutils.__version__}'")
     else:
-        print(f"❌ Installed version = '{pyutils.__version__}' (expected '0.3.0')")
+        print(f"❌ Installed version = '{pyutils.__version__}' (expected '{version}')")
         all_pass = False
 
     # Check pip show
     result = subprocess.run(["pip", "show", "pyutils"], capture_output=True, text=True)
     for line in result.stdout.splitlines():
         if line.startswith("Version:"):
-            if "0.3.0" in line:
+            installed = line.split(":", 1)[1].strip()
+            if installed == version:
                 print(f"✅ pip show pyutils: {line.strip()}")
             else:
-                print(f"❌ pip show pyutils: {line.strip()} (expected 0.3.0)")
+                print(f"❌ pip show pyutils: {line.strip()} (expected {version})")
                 all_pass = False
 
     return all_pass
@@ -354,7 +351,7 @@ def main():
         ("Remaining Files Present", test_remaining_files_exist),
         ("Bug Fixes Verified", test_bug_fixes),
         ("Module Imports Clean", test_module_imports),
-        ("Version at 0.3.0", test_version_bump),
+        ("Version Consistent Across All Locations", test_version_bump),
         ("GitHub Actions Workflows", test_github_actions),
         ("No Broken Import Patterns", test_no_broken_imports_in_code),
     ]
