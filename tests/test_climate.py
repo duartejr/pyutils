@@ -160,3 +160,75 @@ class TestQuantileMappingGamma:
                 hindcast=np.array([1.0]),   # too little data
                 observation=np.array([1.0]),
             )
+
+
+# ------------------------------------------------------------------ #
+# BiasCorrection — quantile_mapping_empirical                          #
+# ------------------------------------------------------------------ #
+
+class TestQuantileMappingEmpirical:
+    def test_maps_to_observation_value(self):
+        hind = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
+        obs  = np.array([12.0, 22.0, 33.0, 43.0, 54.0])
+        result = BiasCorrection.quantile_mapping_empirical(30.0, hind, obs)
+        assert result == 33.0
+
+    def test_returns_float(self):
+        hind = np.arange(1.0, 11.0)
+        obs  = hind * 1.1
+        result = BiasCorrection.quantile_mapping_empirical(5.0, hind, obs)
+        assert isinstance(result, float)
+
+    def test_low_forecast_maps_to_low_observation(self):
+        hind = np.array([1.0, 5.0, 10.0, 20.0, 50.0])
+        obs  = np.array([2.0, 6.0, 12.0, 22.0, 55.0])
+        low = BiasCorrection.quantile_mapping_empirical(1.0, hind, obs)
+        high = BiasCorrection.quantile_mapping_empirical(50.0, hind, obs)
+        assert low < high
+
+    def test_mismatched_lengths_raises(self):
+        with pytest.raises(ValidationError):
+            BiasCorrection.quantile_mapping_empirical(
+                5.0, hindcast=np.ones(10), observation=np.ones(5)
+            )
+
+
+# ------------------------------------------------------------------ #
+# BiasCorrection — linear_error_correction                             #
+# ------------------------------------------------------------------ #
+
+class TestLinearErrorCorrection:
+    def test_output_shape(self):
+        np.random.seed(42)
+        forecast = np.array([10.0, 11.0, 12.0])
+        errors = np.random.normal(0, 1, size=(30, 3))
+        result = BiasCorrection.linear_error_correction(forecast, errors)
+        assert result.shape == (3,)
+
+    def test_no_negative_output(self):
+        np.random.seed(0)
+        forecast = np.zeros(5)
+        errors = np.random.normal(0, 0.1, size=(20, 5))
+        result = BiasCorrection.linear_error_correction(forecast, errors)
+        assert np.all(result >= 0)
+
+    def test_mismatched_columns_raises(self):
+        with pytest.raises(ValidationError):
+            BiasCorrection.linear_error_correction(
+                np.ones(3),
+                errors=np.ones((10, 5)),
+            )
+
+    def test_too_few_samples_raises(self):
+        with pytest.raises(ValidationError):
+            BiasCorrection.linear_error_correction(
+                np.ones(3),
+                errors=np.ones((1, 3)),
+            )
+
+    def test_1d_errors_raises(self):
+        with pytest.raises(ValidationError):
+            BiasCorrection.linear_error_correction(
+                np.ones(3),
+                errors=np.ones(10),
+            )

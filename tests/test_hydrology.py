@@ -234,3 +234,62 @@ class TestFlowAnalyzer:
         mean = FlowAnalyzer.mean_annual_flow(daily_flow)
         assert mean > 0
         assert abs(mean - np.mean(daily_flow)) < np.std(daily_flow)
+
+
+# ------------------------------------------------------------------ #
+# PenmanMonteith                                                       #
+# ------------------------------------------------------------------ #
+
+class TestPenmanMonteith:
+    def test_returns_positive_et0(self):
+        pm = PenmanMonteith()
+        et0 = pm.compute(
+            t_mean=25.0, t_max=32.0, t_min=18.0,
+            rh_mean=60.0, u2=2.0,
+            latitude=-15.0, day_of_year=180,
+            elevation=500.0,
+        )
+        assert et0 > 0
+
+    def test_higher_temperature_gives_higher_et0(self):
+        pm = PenmanMonteith()
+        et_cool = pm.compute(
+            t_mean=15.0, t_max=20.0, t_min=10.0,
+            rh_mean=60.0, u2=2.0,
+            latitude=0.0, day_of_year=180,
+        )
+        et_warm = pm.compute(
+            t_mean=30.0, t_max=35.0, t_min=25.0,
+            rh_mean=60.0, u2=2.0,
+            latitude=0.0, day_of_year=180,
+        )
+        assert et_warm > et_cool
+
+    def test_with_provided_rs(self):
+        pm = PenmanMonteith()
+        et0 = pm.compute(
+            t_mean=25.0, t_max=32.0, t_min=18.0,
+            rh_mean=60.0, u2=2.0,
+            latitude=-15.0, day_of_year=180,
+            rs=18.0,
+        )
+        assert et0 > 0
+
+    def test_invalid_temperatures_raises(self):
+        with pytest.raises(ValidationError):
+            PenmanMonteith().compute(
+                t_mean=35.0, t_max=30.0, t_min=18.0,  # t_mean > t_max
+                rh_mean=60.0, u2=2.0,
+                latitude=-15.0, day_of_year=180,
+            )
+
+    def test_invalid_day_of_year_raises(self):
+        with pytest.raises(ValidationError):
+            PenmanMonteith().compute(
+                t_mean=25.0, t_max=32.0, t_min=18.0,
+                rh_mean=60.0, u2=2.0,
+                latitude=-15.0, day_of_year=400,
+            )
+
+    def test_validate_returns_true(self):
+        assert PenmanMonteith().validate() is True

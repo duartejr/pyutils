@@ -23,8 +23,6 @@ pyutils is organised into domain-specific sub-packages. Each one consolidates se
 | `pyutils.utils` | `DataValidator`, `UnitConverter` | Input validation, unit conversions |
 | `pyutils.core` | `BaseModel`, `ValidationError`, constants | Shared base classes and physical constants |
 
-Legacy flat modules (`evapotranspiration.py`, `spi.py`, `idw.py`, …) remain available for backward compatibility.
-
 ---
 
 ## Installation
@@ -198,23 +196,15 @@ wind_2m = UnitConverter.wind_speed_height_correction(5.0, measurement_height=10.
 ```
 pyutils/
 │
-├── pyutils/                   # Modern class-based sub-package (v0.5+)
+├── pyutils/                   # Class-based sub-packages
 │   ├── core/                  # Abstract base classes, exceptions, constants
 │   ├── hydrology/             # ET, water balance, SPI, flow analysis
 │   ├── geospatial/            # xarray NetCDF, IDW, Thiessen, shapefiles, maps
 │   ├── climate/               # Bias correction (linear, variance, quantile)
 │   └── utils/                 # Validators, unit converters
 │
-├── evapotranspiration.py      # Legacy — Hargreaves, Thornthwaite functions
-├── spi.py                     # Legacy — SPI function
-├── idw.py                     # Legacy — IDW function
-├── thiessen.py                # Legacy — Thiessen function
-├── read_nc.py                 # Legacy — NetCDF4 reader
-├── plot_maps.py               # Legacy — map plotting
-├── bh_thorthwaite.py          # Legacy — water balance
-├── corr_med.py                # Legacy — bias correction
-├── pyeto/                     # FAO-56 Penman-Monteith (full implementation)
-└── rv/                        # Rainfall distribution corrections
+├── pyeto/                     # FAO-56 Penman-Monteith engine (internal)
+└── tests/                     # Test suite
 ```
 
 ---

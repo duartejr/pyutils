@@ -78,14 +78,6 @@ packages = [
     "pyutils.climate",
     "pyutils.utils",
     "pyeto",
-    "rv",
-]
-py-modules = [
-    "bh_thorthwaite", "bh_thorthwaite2", "buffer", "ccsthorthwaite",
-    "corr_med", "custom_colorbar", "eto", "evapotranspiration", "getvertshp",
-    "idw", "isinpoly", "isinshp", "plot_maps",
-    "read_nc", "rvGamma", "shp_area", "spi", "thiessen", "vazoes_minimas",
-    "pyutils"
 ]
 
 [tool.black]

@@ -71,17 +71,6 @@ nav:
     - Utils:
       - Validators: api/utils/validators.md
       - Unit Conversions: api/utils/conversions.md
-    - Legacy modules:
-      - evapotranspiration: api/evapotranspiration.md
-      - SPI: api/spi.md
-      - IDW: api/idw.md
-      - pyeto / FAO-56: api/pyeto/fao.md
-      - pyeto / Conversions: api/pyeto/convert.md
-      - pyeto / Validation: api/pyeto/check.md
-      - read_nc: api/read_nc.md
-      - plot_maps: api/plot_maps.md
-      - thiessen: api/thiessen.md
-      - corr_med: api/corr_med.md
   - Changelog: changelog.md
 
 markdown_extensions:
