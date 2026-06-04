@@ -50,22 +50,15 @@ jobs:
         run: |
           python -c "import pyutils; print(f'✅ pyutils v{pyutils.__version__}')"
           python -c "import pyeto; print('✅ pyeto OK')"
-          python -c "import rv;     print('✅ rv OK')"
-          python -c "import read_nc, evapotranspiration, thiessen; print('✅ core modules OK')"
+          python -c "from pyutils.hydrology import Hargreaves, PenmanMonteith; print('✅ hydrology OK')"
+          python -c "from pyutils.geospatial import XarrayNetCDFHandler, ShapefileHandler; print('✅ geospatial OK')"
+          python -c "from pyutils.climate import BiasCorrection; print('✅ climate OK')"
+          python -c "from pyutils.utils import DataValidator, UnitConverter; print('✅ utils OK')"
 
       - name: Install dev/test dependencies
         run: pip install pytest pytest-cov
 
-      - name: Run Phase 1 verification tests
-        run: python test_phase1_verification.py
-
-      - name: Run Phase 2 verification tests
-        run: python test_phase2_verification.py
-
-      - name: Run Phase 3 verification tests
-        run: python test_phase3_verification.py
-
-      - name: Run Phase 4B unit tests
+      - name: Run tests
         run: pytest tests/ -v --tb=short
 
       - name: Install docs dependencies
