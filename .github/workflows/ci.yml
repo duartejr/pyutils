@@ -38,6 +38,7 @@ jobs:
         # C-extension builds in constrained environments.
         run: |
           pip install numpy pandas scipy shapely geopandas netCDF4 \
+                      xarray dask \
                       matplotlib mapclassify scikit-learn python-dateutil \
                       geovoronoi
           pip install --no-deps -e .
