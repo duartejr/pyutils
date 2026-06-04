@@ -3,4 +3,8 @@
 Consolidates bias correction, climate indices, and climate data processing.
 """
 
-__all__ = []
+from .bias_correction import BiasCorrection
+
+__all__ = [
+    "BiasCorrection",
+]
