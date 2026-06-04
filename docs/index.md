@@ -10,18 +10,14 @@
 
 ## Overview
 
-pyutils provides a collection of scientific Python utilities for hydroclimate data processing. All modules are designed for use in research workflows involving atmospheric science, hydrology, and geospatial analysis.
+pyutils is organised into domain-specific sub-packages. Each one consolidates related functionality behind a clean, class-based API.
 
-| Module | Purpose |
-|--------|---------|
-| [`evapotranspiration`](api/evapotranspiration.md) | Hargreaves, Thornthwaite, and Penman-Monteith ETP |
-| [`spi`](api/spi.md) | Standardized Precipitation Index |
-| [`idw`](api/idw.md) | Inverse Distance Weighting spatial interpolation |
-| [`pyeto`](api/pyeto/fao.md) | FAO-56 reference evapotranspiration (full implementation) |
-| [`read_nc`](api/read_nc.md) | Read climate variables from NetCDF4 files |
-| [`thiessen`](api/thiessen.md) | Thiessen polygon rainfall interpolation |
-| [`plot_maps`](api/plot_maps.md) | Cartopy-based regional map plotting |
-| [`corr_med`](api/corr_med.md) | Bias correction utilities |
+| Sub-package | Classes | What it covers |
+|-------------|---------|----------------|
+| [`pyutils.hydrology`](api/hydrology/evapotranspiration.md) | `Hargreaves`, `Thornthwaite`, `PenmanMonteith`, `ThornthwaiteMather`, `StandardizedPrecipitationIndex`, `FlowAnalyzer` | ET models, water balance, SPI drought index, stream flow statistics |
+| [`pyutils.geospatial`](api/geospatial/io.md) | `XarrayNetCDFHandler`, `InverseDistanceWeighting`, `ThiessenPolygon`, `ShapefileHandler`, `MapRenderer` | NetCDF I/O via xarray, IDW/Thiessen interpolation, shapefile GIS ops, thematic maps |
+| [`pyutils.climate`](api/climate/bias_correction.md) | `BiasCorrection` | Linear scaling, variance scaling, quantile mapping for model post-processing |
+| [`pyutils.utils`](api/utils/validators.md) | `DataValidator`, `UnitConverter` | Input validation, unit conversions |
 
 ---
 
@@ -39,46 +35,63 @@ Requires **Python 3.11+**. See [Installation](getting-started/installation.md) f
 
 ## Highlights
 
-### Vectorized IDW Interpolation
-
-Fills a spatial grid from station observations using Inverse Distance Weighting.
-The implementation uses NumPy broadcasting — **30–45× faster** than a loop-based approach.
+### Evapotranspiration
 
 ```python
 import numpy as np
-from idw import idw
+from pyutils.hydrology import Hargreaves, PenmanMonteith
 
-station_rows = np.array([0.0, 0.0, 9.0, 9.0])
-station_cols = np.array([0.0, 9.0, 0.0, 9.0])
-station_values = np.array([10.0, 20.0, 30.0, 40.0])
-grid = np.zeros((10, 10))
+t_med = np.array([22, 23, 24, 25, 26, 27, 27, 26, 25, 24, 23, 22], dtype=float)
+t_max = t_med + 5
+t_min = t_med - 5
 
-idw(station_rows, station_cols, station_values, grid, power=2)
+# Hargreaves-Samani (mm/month)
+et = Hargreaves().compute(t_med=t_med, t_max=t_max, t_min=t_min, y=-5.0, months=1)
+
+# FAO-56 Penman-Monteith (mm/day)
+et0 = PenmanMonteith().compute(
+    t_mean=25.0, t_max=32.0, t_min=18.0,
+    rh_mean=60.0, u2=2.0,
+    latitude=-15.0, day_of_year=180,
+    elevation=500.0,
+)
 ```
 
 ### Drought Monitoring with SPI
 
-Computes the Standardized Precipitation Index — positive values are wet, negative are drought.
-
 ```python
 import numpy as np
-from spi import spi
+from pyutils.hydrology import StandardizedPrecipitationIndex
 
-precipitation = np.random.exponential(scale=80, size=120)  # 10-year monthly series
-drought_index = spi(precipitation, accumulation_scale=3, num_seasons=12)
+monthly_precip = np.random.gamma(shape=2, scale=60, size=360)  # 30 years
+spi_values, _, _ = StandardizedPrecipitationIndex(timescale=3).compute(monthly_precip)
 ```
 
-### Multi-Method Evapotranspiration
+### Spatial Interpolation
 
 ```python
 import numpy as np
-from evapotranspiration import hargreaves
+from pyutils.geospatial import InverseDistanceWeighting, ThiessenPolygon
 
-mean_temps = np.array([25, 25.5, 26, 25.5, 25, 24.5, 24, 24, 24.5, 25, 25.5, 25.5])
-max_temps = mean_temps + 5
-min_temps = mean_temps - 5
+x = np.array([-45.0, -44.0, -43.0, -44.0])
+y = np.array([ -5.0,  -5.0,  -5.0,  -6.0])
+z = np.array([  85.0, 120.0,  95.0, 110.0])
 
-etp = hargreaves(mean_temps, max_temps, min_temps, y=-15, months=np.arange(1, 13))
+xi = np.linspace(-46.0, -42.0, 40)
+yi = np.linspace( -7.0,  -4.0, 30)
+
+grid = InverseDistanceWeighting(power=2).interpolate(x, y, z, xi, yi)
+```
+
+### NetCDF Climate Data
+
+```python
+from pyutils.geospatial import XarrayNetCDFHandler
+
+handler = XarrayNetCDFHandler()
+ds = handler.read("era5_precip_1991_2020.nc")
+climatology = handler.compute_climatology(group_by="month")
+anomaly = handler.compute_anomaly()
 ```
 
 ---

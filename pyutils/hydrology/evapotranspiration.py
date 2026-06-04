@@ -1,7 +1,9 @@
 """Evapotranspiration calculation models."""
 
+import math
 from typing import Optional
 import numpy as np
+import pyeto.fao as _fao
 from pyutils.core import EvapotranspirationModel, SOLAR_CONSTANT, ValidationError
 
 
@@ -219,10 +221,12 @@ class PenmanMonteith(EvapotranspirationModel):
         t_min: float,
         rh_mean: float,
         u2: float,
-        rs: Optional[np.ndarray] = None,
-        elevation: float = 0,
+        latitude: float,
+        day_of_year: int,
+        rs: Optional[float] = None,
+        elevation: float = 0.0,
     ) -> float:
-        """Compute reference evapotranspiration.
+        """Compute reference evapotranspiration using FAO-56 Penman-Monteith.
 
         Parameters
         ----------
@@ -235,11 +239,16 @@ class PenmanMonteith(EvapotranspirationModel):
         rh_mean : float
             Mean relative humidity (%).
         u2 : float
-            Wind speed at 2m height (m/s).
-        rs : np.ndarray, optional
-            Solar radiation (MJ m^-2 day^-1). If None, computed from temperature.
-        elevation : float
-            Elevation above sea level (m).
+            Wind speed at 2 m height (m/s).
+        latitude : float
+            Latitude in decimal degrees (positive N, negative S).
+        day_of_year : int
+            Day of year (1–365).
+        rs : float, optional
+            Incoming solar radiation (MJ m⁻² day⁻¹). Estimated from
+            temperature when not provided.
+        elevation : float, optional
+            Elevation above sea level (m). Default is 0.
 
         Returns
         -------
@@ -250,17 +259,59 @@ class PenmanMonteith(EvapotranspirationModel):
         ------
         ValidationError
             If input parameters are invalid.
+
+        Examples
+        --------
+        >>> pm = PenmanMonteith()
+        >>> et0 = pm.compute(
+        ...     t_mean=25.0, t_max=32.0, t_min=18.0,
+        ...     rh_mean=60.0, u2=2.0,
+        ...     latitude=-15.0, day_of_year=180,
+        ...     elevation=500,
+        ... )
+        >>> round(et0, 1)
+        5.6
         """
-        if not self._validate_parameters(
-            t_mean, t_max, t_min, rh_mean, u2, elevation
-        ):
+        if not self._validate_parameters(t_mean, t_max, t_min, rh_mean, u2, elevation):
             raise ValidationError("Invalid Penman-Monteith parameters")
 
-        # Simplified FAO-56 computation
-        # This would include full implementation with pressure, vapor pressure,
-        # net radiation, soil heat flux, and aerodynamic resistance calculations
+        if not 1 <= day_of_year <= 366:
+            raise ValidationError(f"day_of_year must be 1–366, got {day_of_year}")
 
-        return 0.0  # Placeholder
+        # Atmospheric pressure and psychrometric constant
+        atm_press = _fao.atm_pressure(elevation)
+        psy = _fao.psy_const(atm_press)
+
+        # Saturation and actual vapour pressure
+        svp_tmax = _fao.svp_from_t(t_max)
+        svp_tmin = _fao.svp_from_t(t_min)
+        svp = (svp_tmax + svp_tmin) / 2.0
+        avp = _fao.avp_from_rhmean(svp_tmin, svp_tmax, rh_mean)
+
+        # Slope of saturation vapour pressure curve
+        delta = _fao.delta_svp(t_mean)
+
+        # Extraterrestrial and clear-sky radiation
+        lat_rad = math.radians(latitude)
+        sol_dec_val = _fao.sol_dec(day_of_year)
+        sha = _fao.sunset_hour_angle(lat_rad, sol_dec_val)
+        ird = _fao.inv_rel_dist_earth_sun(day_of_year)
+        et_rad_val = _fao.et_rad(lat_rad, sol_dec_val, sha, ird)
+        cs_rad_val = _fao.cs_rad(elevation, et_rad_val)
+
+        # Solar radiation — use provided value or estimate from temperature
+        if rs is None:
+            rs = _fao.sol_rad_from_t(et_rad_val, cs_rad_val, t_min, t_max, coastal=False)
+
+        # Net radiation components (net_out_lw_rad expects Kelvin)
+        ni_sw = _fao.net_in_sol_rad(rs)
+        no_lw = _fao.net_out_lw_rad(t_min + 273.15, t_max + 273.15, rs, cs_rad_val, avp)
+        net_radiation = _fao.net_rad(ni_sw, no_lw)
+
+        # FAO-56 Penman-Monteith (temperature in Kelvin)
+        return _fao.fao56_penman_monteith(
+            net_radiation, t_mean + 273.15, u2, svp, avp, delta, psy
+        )
 
     def _validate_parameters(
         self,

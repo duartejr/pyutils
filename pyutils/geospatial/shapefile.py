@@ -358,3 +358,135 @@ class ShapefileHandler:
             return gdf.to_crs(to_crs)
         except Exception as e:
             raise ValidationError(f"Reprojection failed: {e}")
+
+    def get_vertices(
+        self,
+        attribute: Optional[str] = None,
+        value: Optional[str] = None,
+        gdf: Optional[gpd.GeoDataFrame] = None,
+    ) -> np.ndarray:
+        """Extract polygon vertices as a numpy array.
+
+        Parameters
+        ----------
+        attribute : str, optional
+            Column name to filter by (e.g. 'basin'). If None, uses first feature.
+        value : str, optional
+            Value to match in the attribute column.
+        gdf : gpd.GeoDataFrame, optional
+            GeoDataFrame to extract from. If None, uses current gdf.
+
+        Returns
+        -------
+        np.ndarray
+            Array of shape (N, 2) with (x, y) coordinates of polygon vertices.
+
+        Raises
+        ------
+        ValidationError
+            If no geometry is available or the attribute/value is not found.
+
+        Examples
+        --------
+        >>> shp = ShapefileHandler()
+        >>> shp.read_shapefile("basin.shp")
+        >>> vertices = shp.get_vertices()
+        >>> vertices.shape
+        (243, 2)
+        """
+        if gdf is None:
+            if self.gdf is None:
+                raise ValidationError("No geodataframe loaded")
+            gdf = self.gdf
+
+        try:
+            if attribute is not None and value is not None:
+                subset = gdf[gdf[attribute] == value]
+                if len(subset) == 0:
+                    raise ValidationError(
+                        f"No feature with {attribute}='{value}'"
+                    )
+                geom = subset.geometry.iloc[0]
+            else:
+                geom = gdf.geometry.iloc[0]
+
+            if hasattr(geom, "geoms"):
+                # MultiPolygon — concatenate all rings
+                vertices = np.concatenate(
+                    [np.array(part.exterior.coords) for part in geom.geoms]
+                )
+            else:
+                vertices = np.array(geom.exterior.coords)
+
+            return vertices
+        except ValidationError:
+            raise
+        except Exception as e:
+            raise ValidationError(f"Failed to extract vertices: {e}")
+
+    def points_in_polygon(
+        self,
+        lat: np.ndarray,
+        lon: np.ndarray,
+        buffer: float = 0.0,
+        gdf: Optional[gpd.GeoDataFrame] = None,
+    ) -> np.ndarray:
+        """Return grid coordinates that fall inside the loaded shapefile.
+
+        Parameters
+        ----------
+        lat : np.ndarray
+            1-D array of latitude values.
+        lon : np.ndarray
+            1-D array of longitude values.
+        buffer : float, optional
+            Buffer distance in CRS units applied to geometries before
+            the point-in-polygon test. Default is 0 (no buffer).
+        gdf : gpd.GeoDataFrame, optional
+            GeoDataFrame to test against. If None, uses current gdf.
+
+        Returns
+        -------
+        np.ndarray
+            Array of shape (M, 2) with (lon, lat) of points inside the polygon,
+            where M ≤ len(lat) × len(lon).
+
+        Raises
+        ------
+        ValidationError
+            If no geodataframe available or operation fails.
+
+        Examples
+        --------
+        >>> shp = ShapefileHandler()
+        >>> shp.read_shapefile("basin.shp")
+        >>> inside = shp.points_in_polygon(lat=lats, lon=lons, buffer=0.01)
+        """
+        if gdf is None:
+            if self.gdf is None:
+                raise ValidationError("No geodataframe loaded")
+            gdf = self.gdf
+
+        try:
+            geom = gdf.geometry
+            if buffer > 0:
+                geom = geom.buffer(buffer)
+            merged = unary_union(geom)
+
+            xi, yi = np.meshgrid(lon, lat)
+            flat_lon = xi.ravel()
+            flat_lat = yi.ravel()
+
+            points_gdf = gpd.GeoDataFrame(
+                geometry=gpd.points_from_xy(flat_lon, flat_lat),
+                crs=self.crs,
+            )
+
+            inside_mask = points_gdf.geometry.within(merged)
+            inside_coords = np.column_stack(
+                [flat_lon[inside_mask], flat_lat[inside_mask]]
+            )
+
+            return inside_coords
+        except Exception as e:
+            raise ValidationError(f"points_in_polygon failed: {e}")

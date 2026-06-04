@@ -188,6 +188,60 @@ class TestShapefileHandler:
         assert len(areas) == 1
         assert areas[0] > 0
 
+    def test_get_vertices_returns_array(self):
+        import geopandas as gpd
+        from shapely.geometry import Polygon
+        gdf = gpd.GeoDataFrame(
+            geometry=[Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])],
+            crs="EPSG:4326",
+        )
+        shp = ShapefileHandler()
+        shp.gdf = gdf
+        vertices = shp.get_vertices()
+        assert vertices.ndim == 2
+        assert vertices.shape[1] == 2
+
+    def test_get_vertices_no_gdf_raises(self):
+        shp = ShapefileHandler()
+        with pytest.raises(ValidationError):
+            shp.get_vertices()
+
+    def test_get_vertices_missing_attribute_raises(self):
+        import geopandas as gpd
+        from shapely.geometry import Polygon
+        gdf = gpd.GeoDataFrame(
+            geometry=[Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])],
+            crs="EPSG:4326",
+        )
+        shp = ShapefileHandler()
+        shp.gdf = gdf
+        with pytest.raises(ValidationError):
+            shp.get_vertices(attribute="name", value="nonexistent")
+
+    def test_points_in_polygon_returns_inside_coords(self):
+        import geopandas as gpd
+        from shapely.geometry import Polygon
+        # Unit square 0–1
+        gdf = gpd.GeoDataFrame(
+            geometry=[Polygon([(0, 0), (2, 0), (2, 2), (0, 2)])],
+            crs="EPSG:4326",
+        )
+        shp = ShapefileHandler(crs="EPSG:4326")
+        shp.gdf = gdf
+        lats = np.array([0.5, 1.0, 3.0])
+        lons = np.array([0.5, 1.0, 3.0])
+        inside = shp.points_in_polygon(lat=lats, lon=lons)
+        assert inside.ndim == 2
+        assert inside.shape[1] == 2
+        # All returned coords must be within [0, 2]
+        assert np.all(inside <= 2.0)
+        assert np.all(inside >= 0.0)
+
+    def test_points_in_polygon_no_gdf_raises(self):
+        shp = ShapefileHandler()
+        with pytest.raises(ValidationError):
+            shp.points_in_polygon(lat=np.array([0.5]), lon=np.array([0.5]))
+
 
 # ------------------------------------------------------------------ #
 # MapRenderer                                                          #
