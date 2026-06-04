@@ -39,6 +39,8 @@ dependencies = [
     "matplotlib>=3.3",
     "scipy>=1.7",
     "netCDF4>=1.5",
+    "xarray>=2022.6",
+    "dask>=2022.6",
     "cartopy>=0.20",
     "mapclassify>=2.4",
     "python-dateutil>=2.8",
@@ -68,7 +70,16 @@ Documentation = "https://duartejr.github.io/pyutils"
 Issues = "https://github.com/duartejr/pyutils/issues"
 
 [tool.setuptools]
-packages = ["pyeto", "rv"]
+packages = [
+    "pyutils",
+    "pyutils.core",
+    "pyutils.hydrology",
+    "pyutils.geospatial",
+    "pyutils.climate",
+    "pyutils.utils",
+    "pyeto",
+    "rv",
+]
 py-modules = [
     "bh_thorthwaite", "bh_thorthwaite2", "buffer", "ccsthorthwaite",
     "corr_med", "custom_colorbar", "eto", "evapotranspiration", "getvertshp",
