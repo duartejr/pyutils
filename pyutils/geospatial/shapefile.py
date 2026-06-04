@@ -98,7 +98,7 @@ class ShapefileHandler:
     def compute_area(
         self,
         geometry: Optional[Polygon] = None,
-        to_crs: str = "EPSG:102033",
+        to_crs: str = "EPSG:6933",
     ) -> float:
         """Compute polygon area in projected coordinate system.
 
@@ -110,7 +110,7 @@ class ShapefileHandler:
         geometry : Polygon, optional
             Geometry to compute area. If None, uses first geometry in current gdf.
         to_crs : str, optional
-            Target CRS for projection. Default is EPSG:102033 (AEA for Americas).
+            Target CRS for projection. Default is EPSG:6933 (WGS 84 / NSIDC EASE-Grid 2.0 Global — equal-area).
 
         Returns
         -------
@@ -143,7 +143,7 @@ class ShapefileHandler:
     def compute_areas(
         self,
         gdf: Optional[gpd.GeoDataFrame] = None,
-        to_crs: str = "EPSG:102033",
+        to_crs: str = "EPSG:6933",
     ) -> np.ndarray:
         """Compute areas for all geometries in geodataframe.
 
