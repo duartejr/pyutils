@@ -56,14 +56,28 @@ nav:
     - Installation: getting-started/installation.md
     - Quick Start: getting-started/quickstart.md
   - API Reference:
-    - Evapotranspiration: api/evapotranspiration.md
-    - SPI: api/spi.md
-    - IDW: api/idw.md
-    - pyeto:
-      - FAO-56: api/pyeto/fao.md
-      - Conversions: api/pyeto/convert.md
-      - Validation: api/pyeto/check.md
-    - Other Modules:
+    - Hydrology:
+      - Evapotranspiration: api/hydrology/evapotranspiration.md
+      - Water Balance: api/hydrology/water_balance.md
+      - Drought Indices (SPI): api/hydrology/indices.md
+      - Flow Analysis: api/hydrology/flow_analysis.md
+    - Geospatial:
+      - NetCDF I/O (xarray): api/geospatial/io.md
+      - Interpolation (IDW / Thiessen): api/geospatial/interpolation.md
+      - Shapefile Operations: api/geospatial/shapefile.md
+      - Visualization: api/geospatial/visualization.md
+    - Climate:
+      - Bias Correction: api/climate/bias_correction.md
+    - Utils:
+      - Validators: api/utils/validators.md
+      - Unit Conversions: api/utils/conversions.md
+    - Legacy modules:
+      - evapotranspiration: api/evapotranspiration.md
+      - SPI: api/spi.md
+      - IDW: api/idw.md
+      - pyeto / FAO-56: api/pyeto/fao.md
+      - pyeto / Conversions: api/pyeto/convert.md
+      - pyeto / Validation: api/pyeto/check.md
       - read_nc: api/read_nc.md
       - plot_maps: api/plot_maps.md
       - thiessen: api/thiessen.md
@@ -89,7 +103,15 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/duartejr/pyutils
-  version:
-    provider: mike
+      name: GitHub
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/duarte-junior-9530595a
+      name: LinkedIn
+    - icon: fontawesome/regular/envelope
+      link: mailto:duarte.jr105@gmail.com
+      name: Email
 
-copyright: Copyright &copy; 2024 Duarte Junior — GPL-3.0-or-later
+copyright: >
+  Copyright &copy; 2024 Duarte Junior — GPL-3.0-or-later &nbsp;|&nbsp;
+  <a href="mailto:duarte.jr105@gmail.com">duarte.jr105@gmail.com</a> &nbsp;|&nbsp;
+  <a href="https://www.linkedin.com/in/duarte-junior-9530595a" target="_blank">LinkedIn</a>
