@@ -57,18 +57,22 @@ nav:
     - Quick Start: getting-started/quickstart.md
   - API Reference:
     - Hydrology:
+      - Overview: api/hydrology/index.md
       - Evapotranspiration: api/hydrology/evapotranspiration.md
       - Water Balance: api/hydrology/water_balance.md
       - Drought Indices (SPI): api/hydrology/indices.md
       - Flow Analysis: api/hydrology/flow_analysis.md
     - Geospatial:
+      - Overview: api/geospatial/index.md
       - NetCDF I/O (xarray): api/geospatial/io.md
       - Interpolation (IDW / Thiessen): api/geospatial/interpolation.md
       - Shapefile Operations: api/geospatial/shapefile.md
       - Visualization: api/geospatial/visualization.md
     - Climate:
+      - Overview: api/climate/index.md
       - Bias Correction: api/climate/bias_correction.md
     - Utils:
+      - Overview: api/utils/index.md
       - Validators: api/utils/validators.md
       - Unit Conversions: api/utils/conversions.md
   - Changelog: changelog.md

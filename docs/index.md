@@ -14,10 +14,10 @@ pyutils is organised into domain-specific sub-packages. Each one consolidates re
 
 | Sub-package | Classes | What it covers |
 |-------------|---------|----------------|
-| [`pyutils.hydrology`](api/hydrology/evapotranspiration.md) | `Hargreaves`, `Thornthwaite`, `PenmanMonteith`, `ThornthwaiteMather`, `StandardizedPrecipitationIndex`, `FlowAnalyzer` | ET models, water balance, SPI drought index, stream flow statistics |
-| [`pyutils.geospatial`](api/geospatial/io.md) | `XarrayNetCDFHandler`, `InverseDistanceWeighting`, `ThiessenPolygon`, `ShapefileHandler`, `MapRenderer` | NetCDF I/O via xarray, IDW/Thiessen interpolation, shapefile GIS ops, thematic maps |
-| [`pyutils.climate`](api/climate/bias_correction.md) | `BiasCorrection` | Linear scaling, variance scaling, quantile mapping for model post-processing |
-| [`pyutils.utils`](api/utils/validators.md) | `DataValidator`, `UnitConverter` | Input validation, unit conversions |
+| [`pyutils.hydrology`](api/hydrology/index.md) | `Hargreaves`, `Thornthwaite`, `PenmanMonteith`, `ThornthwaiteMather`, `StandardizedPrecipitationIndex`, `FlowAnalyzer` | ET models, water balance, SPI drought index, stream flow statistics |
+| [`pyutils.geospatial`](api/geospatial/index.md) | `XarrayNetCDFHandler`, `InverseDistanceWeighting`, `ThiessenPolygon`, `ShapefileHandler`, `MapRenderer` | NetCDF I/O via xarray, IDW/Thiessen interpolation, shapefile GIS ops, thematic maps |
+| [`pyutils.climate`](api/climate/index.md) | `BiasCorrection` | Linear scaling, variance scaling, quantile mapping for model post-processing |
+| [`pyutils.utils`](api/utils/index.md) | `DataValidator`, `UnitConverter` | Input validation, unit conversions |
 
 ---
 
