@@ -17,7 +17,7 @@ pyutils is organised into domain-specific sub-packages. Each one consolidates se
 
 | Sub-package | Classes | What it covers |
 |-------------|---------|----------------|
-| `pyutils.hydrology` | `Hargreaves`, `Thornthwaite`, `PenmanMonteith`, `ThornthwaiteMather`, `StandardizedPrecipitationIndex`, `FlowAnalyzer` | ET models, water balance, SPI drought index, stream flow statistics |
+| `pyutils.hydrology` | `Hargreaves`, `Thornthwaite`, `PenmanMonteith`, `ThornthwaiteMather`, `StandardizedPrecipitationIndex`, `FlowAnalyzer`, `TimeOfConcentration` | ET models, water balance, SPI drought index, stream flow statistics, time of concentration |
 | `pyutils.geospatial` | `XarrayNetCDFHandler`, `InverseDistanceWeighting`, `ThiessenPolygon`, `ShapefileHandler`, `MapRenderer` | NetCDF I/O via xarray, IDW/Thiessen interpolation, shapefile GIS ops, thematic maps |
 | `pyutils.climate` | `BiasCorrection` | Linear scaling, variance scaling, quantile mapping for model post-processing |
 | `pyutils.utils` | `DataValidator`, `UnitConverter` | Input validation, unit conversions |
@@ -113,6 +113,18 @@ print(f"Q95: {stats['q95']:.3f} m³/s")
 
 q7_10 = FlowAnalyzer.q7_10_extreme_value(daily_flow)
 print(f"Q7,10 = {q7_10:.3f} m³/s")
+```
+
+### Time of Concentration
+
+```python
+from pyutils.hydrology import TimeOfConcentration
+
+results = TimeOfConcentration.compute_all(
+    area_km2=25.0, length_km=8.0, height_m=120.0, slope_pct=1.5,
+)
+for method, tc in sorted(results.items(), key=lambda kv: kv[1]):
+    print(f"{method:<18} {tc:6.2f} h")
 ```
 
 ### NetCDF Climate Data (xarray)

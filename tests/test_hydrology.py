@@ -9,6 +9,7 @@ from pyutils.hydrology import (
     ThornthwaiteMather,
     StandardizedPrecipitationIndex,
     FlowAnalyzer,
+    TimeOfConcentration,
 )
 from pyutils.core import ValidationError
 
@@ -293,3 +294,152 @@ class TestPenmanMonteith:
 
     def test_validate_returns_true(self):
         assert PenmanMonteith().validate() is True
+
+
+# ------------------------------------------------------------------ #
+# TimeOfConcentration                                                  #
+# ------------------------------------------------------------------ #
+
+@pytest.fixture
+def watershed_params():
+    return {
+        "area_km2": 25.0,
+        "length_km": 8.0,
+        "height_m": 120.0,
+        "slope_pct": 1.5,
+    }
+
+
+class TestTimeOfConcentration:
+    def test_kirpich_positive(self, watershed_params):
+        tc = TimeOfConcentration.kirpich(
+            watershed_params["length_km"], watershed_params["slope_pct"]
+        )
+        assert tc > 0
+
+    def test_ventura_positive(self, watershed_params):
+        tc = TimeOfConcentration.ventura(
+            watershed_params["area_km2"], watershed_params["slope_pct"]
+        )
+        assert tc > 0
+
+    def test_giandotti_positive(self, watershed_params):
+        tc = TimeOfConcentration.giandotti(
+            watershed_params["area_km2"],
+            watershed_params["length_km"],
+            watershed_params["slope_pct"],
+        )
+        assert tc > 0
+
+    def test_temez_positive(self, watershed_params):
+        tc = TimeOfConcentration.temez(
+            watershed_params["length_km"], watershed_params["slope_pct"]
+        )
+        assert tc > 0
+
+    def test_pasini_positive(self, watershed_params):
+        tc = TimeOfConcentration.pasini(
+            watershed_params["area_km2"],
+            watershed_params["length_km"],
+            watershed_params["slope_pct"],
+        )
+        assert tc > 0
+
+    def test_picking_positive(self, watershed_params):
+        tc = TimeOfConcentration.picking(
+            watershed_params["length_km"], watershed_params["slope_pct"]
+        )
+        assert tc > 0
+
+    def test_pickering_positive(self, watershed_params):
+        tc = TimeOfConcentration.pickering(
+            watershed_params["length_km"], watershed_params["height_m"]
+        )
+        assert tc > 0
+
+    def test_bransby_williams_positive(self, watershed_params):
+        tc = TimeOfConcentration.bransby_williams(
+            watershed_params["area_km2"],
+            watershed_params["length_km"],
+            watershed_params["slope_pct"],
+        )
+        assert tc > 0
+
+    def test_chpw_positive(self, watershed_params):
+        tc = TimeOfConcentration.chpw(
+            watershed_params["length_km"], watershed_params["height_m"]
+        )
+        assert tc > 0
+
+    def test_ven_te_chow_positive(self, watershed_params):
+        tc = TimeOfConcentration.ven_te_chow(
+            watershed_params["length_km"], watershed_params["slope_pct"]
+        )
+        assert tc > 0
+
+    def test_corps_engineers_positive(self, watershed_params):
+        tc = TimeOfConcentration.corps_engineers(
+            watershed_params["length_km"], watershed_params["slope_pct"]
+        )
+        assert tc > 0
+
+    def test_dooge_positive(self, watershed_params):
+        tc = TimeOfConcentration.dooge(
+            watershed_params["area_km2"], watershed_params["slope_pct"]
+        )
+        assert tc > 0
+
+    def test_espey_positive(self, watershed_params):
+        tc = TimeOfConcentration.espey(
+            watershed_params["area_km2"],
+            watershed_params["length_km"],
+            watershed_params["slope_pct"],
+        )
+        assert tc > 0
+
+    def test_compute_all_returns_thirteen_methods(self, watershed_params):
+        results = TimeOfConcentration.compute_all(**watershed_params)
+        assert len(results) == 13
+        assert all(value > 0 for value in results.values())
+
+    def test_compute_all_keys(self, watershed_params):
+        results = TimeOfConcentration.compute_all(**watershed_params)
+        expected_keys = {
+            "Kirpich", "Ventura", "Giandotti", "Temez", "Pasini", "Picking",
+            "Pickering", "Bransby Williams", "CHPW", "Ven te Chow",
+            "Corps Engineers", "Dooge", "Espey",
+        }
+        assert set(results) == expected_keys
+
+    def test_larger_basin_increases_kirpich_tc(self):
+        small = TimeOfConcentration.kirpich(length_km=2.0, slope_pct=2.0)
+        large = TimeOfConcentration.kirpich(length_km=20.0, slope_pct=2.0)
+        assert large > small
+
+    def test_steeper_slope_decreases_kirpich_tc(self):
+        gentle = TimeOfConcentration.kirpich(length_km=8.0, slope_pct=0.5)
+        steep = TimeOfConcentration.kirpich(length_km=8.0, slope_pct=5.0)
+        assert steep < gentle
+
+    @pytest.mark.parametrize(
+        "method, kwargs",
+        [
+            ("kirpich", {"length_km": -1.0, "slope_pct": 1.0}),
+            ("kirpich", {"length_km": 1.0, "slope_pct": 0.0}),
+            ("ventura", {"area_km2": 0.0, "slope_pct": 1.0}),
+            ("giandotti", {"area_km2": 1.0, "length_km": -2.0, "slope_pct": 1.0}),
+            ("temez", {"length_km": 1.0, "slope_pct": -1.0}),
+            ("pasini", {"area_km2": 1.0, "length_km": 1.0, "slope_pct": float("nan")}),
+            ("picking", {"length_km": 0.0, "slope_pct": 1.0}),
+            ("pickering", {"length_km": 1.0, "height_m": 0.0}),
+            ("bransby_williams", {"area_km2": 1.0, "length_km": 1.0, "slope_pct": -0.5}),
+            ("chpw", {"length_km": -1.0, "height_m": 10.0}),
+            ("ven_te_chow", {"length_km": 1.0, "slope_pct": -1.0}),
+            ("corps_engineers", {"length_km": -1.0, "slope_pct": 1.0}),
+            ("dooge", {"area_km2": -1.0, "slope_pct": 1.0}),
+            ("espey", {"area_km2": 1.0, "length_km": 1.0, "slope_pct": 0.0}),
+        ],
+    )
+    def test_invalid_inputs_raise(self, method, kwargs):
+        with pytest.raises(ValidationError):
+            getattr(TimeOfConcentration, method)(**kwargs)

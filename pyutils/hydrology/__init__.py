@@ -8,6 +8,7 @@ from .evapotranspiration import Hargreaves, Thornthwaite, PenmanMonteith
 from .water_balance import ThornthwaiteMather
 from .indices import StandardizedPrecipitationIndex
 from .flow_analysis import FlowAnalyzer
+from .time_concentration import TimeOfConcentration
 
 __all__ = [
     "Hargreaves",
@@ -16,4 +17,5 @@ __all__ = [
     "ThornthwaiteMather",
     "StandardizedPrecipitationIndex",
     "FlowAnalyzer",
+    "TimeOfConcentration",
 ]

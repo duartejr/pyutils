@@ -14,6 +14,7 @@ Hydroclimate analysis — evapotranspiration models, water balance, drought indi
 | [`ThornthwaiteMather`](water_balance.md#thornthwaitemather) | Monthly water balance (standard, variant 2, and CCS methods) |
 | [`StandardizedPrecipitationIndex`](indices.md#standardizedprecipitationindex) | SPI drought index (gamma or lognormal distribution) |
 | [`FlowAnalyzer`](flow_analysis.md#flowanalyzer) | Flow duration curves, Q7,10, low/high flow statistics |
+| [`TimeOfConcentration`](time_concentration.md#timeofconcentration) | Watershed time of concentration via 13 empirical formulas |
 
 ---
 
@@ -90,6 +91,18 @@ q7_10 = FlowAnalyzer.q7_10_extreme_value(daily_flow)
 print(f"Q7,10 = {q7_10:.3f} m³/s")
 ```
 
+### Time of Concentration
+
+```python
+from pyutils.hydrology import TimeOfConcentration
+
+results = TimeOfConcentration.compute_all(
+    area_km2=25.0, length_km=8.0, height_m=120.0, slope_pct=1.5,
+)
+for method, tc in sorted(results.items(), key=lambda kv: kv[1]):
+    print(f"{method:<18} {tc:6.2f} h")
+```
+
 ---
 
 ## API Reference
@@ -98,3 +111,4 @@ print(f"Q7,10 = {q7_10:.3f} m³/s")
 - [Water Balance](water_balance.md) — `ThornthwaiteMather`
 - [Drought Indices](indices.md) — `StandardizedPrecipitationIndex`
 - [Flow Analysis](flow_analysis.md) — `FlowAnalyzer`
+- [Time of Concentration](time_concentration.md) — `TimeOfConcentration`

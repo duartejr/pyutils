@@ -62,6 +62,7 @@ nav:
       - Water Balance: api/hydrology/water_balance.md
       - Drought Indices (SPI): api/hydrology/indices.md
       - Flow Analysis: api/hydrology/flow_analysis.md
+      - Time of Concentration: api/hydrology/time_concentration.md
     - Geospatial:
       - Overview: api/geospatial/index.md
       - NetCDF I/O (xarray): api/geospatial/io.md
